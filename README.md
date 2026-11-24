@@ -16,7 +16,7 @@ yawe/ai_client.py  # integração com a API: histórico, streaming, tratamento d
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # só se você ainda não tiver um .env; depois coloque sua chave
-python main.py
+python main.py         # no Windows, se 'python' não funcionar: py main.py
 ```
 
 Comandos no chat: `/limpar` zera o histórico, `/sair` encerra.

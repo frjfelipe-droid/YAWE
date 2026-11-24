@@ -126,7 +126,11 @@ class ClaudeChat:
         except anthropic.AuthenticationError as e:
             raise AIError("Chave de API inválida ou revogada. Confira a chave no arquivo .env.", request_id=e.request_id) from e
         except anthropic.PermissionDeniedError as e:
-            raise AIError("Sua chave não tem permissão para este recurso/modelo.", request_id=e.request_id) from e
+            raise AIError(
+                f"Sua chave não tem permissão para usar '{self.settings.model}'. "
+                f"Resposta do servidor: {e.message}",
+                request_id=e.request_id,
+            ) from e
         except anthropic.NotFoundError as e:
             raise AIError(
                 f"Modelo '{self.settings.model}' não encontrado ou indisponível para sua conta.",
