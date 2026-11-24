@@ -45,7 +45,11 @@ class ClaudeChat:
     def __post_init__(self) -> None:
         if self.client is None:
             # O SDK já faz retry automático (com backoff) em 408/409/429/5xx e falhas de rede.
-            self.client = anthropic.Anthropic(api_key=self.settings.api_key, max_retries=3)
+            self.client = anthropic.Anthropic(
+                api_key=self.settings.api_key,
+                base_url=self.settings.base_url,  # None = API da Anthropic; senão, Vercel AI Gateway
+                max_retries=3,
+            )
 
     def reset(self) -> None:
         self.history.clear()
@@ -91,25 +95,36 @@ class ClaudeChat:
             output_tokens=final.usage.output_tokens,
         )
 
+    def _open_stream(self):
+        assert self.client is not None
+        common = dict(
+            model=self.settings.model,
+            max_tokens=self.settings.max_tokens,
+            system=self.settings.system_prompt,
+            messages=self.history,
+        )
+        if self.settings.provider == "vercel":
+            # O Vercel AI Gateway aceita só os parâmetros padrão da Messages API
+            # (sem recursos beta como fallbacks, nem output_config).
+            return self.client.messages.stream(**common)
+        return self.client.beta.messages.stream(
+            **common,
+            output_config={"effort": self.settings.effort},
+            cache_control={"type": "ephemeral"},
+            betas=[FALLBACK_BETA],
+            fallbacks="default",
+        )
+
     def _stream(self, on_text: Callable[[str], None] | None):
         assert self.client is not None
         try:
-            with self.client.beta.messages.stream(
-                model=self.settings.model,
-                max_tokens=self.settings.max_tokens,
-                system=self.settings.system_prompt,
-                messages=self.history,
-                output_config={"effort": self.settings.effort},
-                cache_control={"type": "ephemeral"},
-                betas=[FALLBACK_BETA],
-                fallbacks="default",
-            ) as stream:
+            with self._open_stream() as stream:
                 for chunk in stream.text_stream:
                     if on_text:
                         on_text(chunk)
                 return stream.get_final_message()
         except anthropic.AuthenticationError as e:
-            raise AIError("Chave de API inválida. Verifique ANTHROPIC_API_KEY.", request_id=e.request_id) from e
+            raise AIError("Chave de API inválida ou revogada. Confira a chave no arquivo .env.", request_id=e.request_id) from e
         except anthropic.PermissionDeniedError as e:
             raise AIError("Sua chave não tem permissão para este recurso/modelo.", request_id=e.request_id) from e
         except anthropic.NotFoundError as e:

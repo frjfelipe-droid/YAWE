@@ -25,10 +25,11 @@ Comandos no chat: `/limpar` zera o histórico, `/sair` encerra.
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | — (obrigatória) | Sua chave da API |
-| `CLAUDE_MODEL` | `claude-opus-5-5` | Modelo |
-| `CLAUDE_EFFORT` | `medium` | `low` / `medium` / `high` / `xhigh` / `max` |
-| `CLAUDE_MAX_TOKENS` | `64000` | Limite de tokens por resposta |
+| `AI_GATEWAY_API_KEY` | — | Chave do Vercel AI Gateway (`vck_...`) |
+| `ANTHROPIC_API_KEY` | — | Chave da Anthropic (`sk-ant-...`) — use esta OU a da Vercel |
+| `CLAUDE_MODEL` | Vercel: `anthropic/claude-haiku-5.5`; Anthropic: `claude-opus-5-5` | Modelo |
+| `CLAUDE_EFFORT` | `medium` | Só na Anthropic: `low` / `medium` / `high` / `xhigh` / `max` |
+| `CLAUDE_MAX_TOKENS` | `16000` | Limite de tokens por resposta |
 | `CLAUDE_SYSTEM_PROMPT` | assistente em pt-BR | Prompt de sistema |
 
 Variáveis já exportadas no ambiente têm prioridade: o `.env` nunca as sobrescreve, e o código nunca escreve no `.env`.
