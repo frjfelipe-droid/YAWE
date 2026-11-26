@@ -1,10 +1,10 @@
-"""Ponto de entrada do YAWE: chat de terminal com o Claude."""
+"""Ponto de entrada do YAWE: chat de terminal com IA (Gemini, Claude via Anthropic ou Vercel)."""
 
 from __future__ import annotations
 
 import sys
 
-from yawe.ai_client import AIError, ClaudeChat
+from yawe.ai_client import AIError, create_chat
 from yawe.config import ConfigError, load_settings
 
 HELP = "Comandos: /limpar (zera o histórico), /sair (encerra)."
@@ -17,7 +17,7 @@ def main() -> int:
         print(f"[configuração] {e}", file=sys.stderr)
         return 1
 
-    chat = ClaudeChat(settings)
+    chat = create_chat(settings)
     print(f"YAWE — conversando com {settings.model}. {HELP}")
 
     while True:
@@ -36,7 +36,7 @@ def main() -> int:
             print("Histórico apagado.")
             continue
 
-        print("\nClaude: ", end="", flush=True)
+        print("\nIA: ", end="", flush=True)
         try:
             reply = chat.send(user_input, on_text=lambda t: print(t, end="", flush=True))
         except AIError as e:
@@ -45,9 +45,7 @@ def main() -> int:
                 print(f"        request-id: {e.request_id}", file=sys.stderr)
             continue
         except KeyboardInterrupt:
-            # Resposta interrompida: a mensagem não entra no histórico.
-            if chat.history and chat.history[-1]["role"] == "user":
-                chat.history.pop()
+            # Resposta interrompida (Ctrl+C): a mensagem já saiu do histórico.
             print("\n[interrompido]")
             continue
 

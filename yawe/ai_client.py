@@ -66,7 +66,7 @@ class ClaudeChat:
         self.history.append({"role": "user", "content": user_message})
         try:
             final = self._stream(on_text)
-        except AIError:
+        except BaseException:  # inclui Ctrl+C: a mensagem não respondida sai do histórico
             self.history.pop()
             raise
 
@@ -155,3 +155,12 @@ class ClaudeChat:
         except anthropic.APIConnectionError as e:
             raise AIError("Falha de conexão com a API. Verifique sua internet.", retryable=True) from e
 
+
+
+def create_chat(settings: Settings):
+    """Cria a sessão de chat do provedor configurado (Anthropic, Vercel ou Gemini)."""
+    if settings.provider == "gemini":
+        from .gemini_client import GeminiChat
+
+        return GeminiChat(settings)
+    return ClaudeChat(settings)

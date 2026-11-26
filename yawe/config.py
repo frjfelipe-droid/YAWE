@@ -18,6 +18,7 @@ VERCEL_GATEWAY_URL = "https://ai-gateway.vercel.sh"
 DEFAULT_MODELS = {
     "anthropic": "claude-opus-5-5",
     "vercel": "anthropic/claude-haiku-5.5",
+    "gemini": "gemini-2.5-flash",
 }
 
 
@@ -27,7 +28,7 @@ class ConfigError(RuntimeError):
 
 @dataclass(frozen=True)
 class Settings:
-    provider: str  # "anthropic" (API direta) ou "vercel" (Vercel AI Gateway)
+    provider: str  # "anthropic" (API direta), "vercel" (Vercel AI Gateway) ou "gemini" (Google)
     api_key: str
     base_url: str | None
     model: str
@@ -37,9 +38,16 @@ class Settings:
 
 
 def _detect_provider() -> tuple[str, str]:
+    gemini_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     gateway_key = os.getenv("AI_GATEWAY_API_KEY", "").strip()
     anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
 
+    if gemini_key:
+        return "gemini", gemini_key
+    # Chaves do Google começam com "AIza": aceita mesmo se colocada no nome errado.
+    for key in (gateway_key, anthropic_key):
+        if key.startswith("AIza"):
+            return "gemini", key
     if gateway_key:
         return "vercel", gateway_key
     # Chaves da Vercel começam com "vck_": aceita mesmo se colocada no nome errado.
@@ -49,9 +57,20 @@ def _detect_provider() -> tuple[str, str]:
         return "anthropic", anthropic_key
 
     raise ConfigError(
-        "Nenhuma chave encontrada. No arquivo .env, coloque AI_GATEWAY_API_KEY=vck_... "
-        "(Vercel) ou ANTHROPIC_API_KEY=sk-ant-... (Anthropic). Veja .env.example."
+        "Nenhuma chave encontrada. No arquivo .env, coloque GEMINI_API_KEY=AIza... (Google, grátis), "
+        "AI_GATEWAY_API_KEY=vck_... (Vercel) ou ANTHROPIC_API_KEY=sk-ant-... (Anthropic). "
+        "Veja .env.example."
     )
+
+
+def _model_for(provider: str) -> str:
+    model = (os.getenv("AI_MODEL") or os.getenv("CLAUDE_MODEL") or "").strip()
+    if provider == "gemini":
+        # Aceita o nome no formato da Vercel ("google/gemini-...") e ignora modelos de outros provedores.
+        model = model.removeprefix("google/")
+        if not model.startswith(("gemini", "gemma")):
+            model = ""
+    return model or DEFAULT_MODELS[provider]
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -76,7 +95,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         provider=provider,
         api_key=api_key,
         base_url=VERCEL_GATEWAY_URL if provider == "vercel" else None,
-        model=os.getenv("CLAUDE_MODEL", "").strip() or DEFAULT_MODELS[provider],
+        model=_model_for(provider),
         effort=effort,
         max_tokens=max_tokens,
         system_prompt=os.getenv(

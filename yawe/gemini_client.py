@@ -1,0 +1,126 @@
+"""Integração com a API do Google Gemini (plano grátis do Google AI Studio)."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass, field
+
+import httpx2
+from google import genai
+from google.genai import errors, types
+
+from .ai_client import AIError, ChatReply
+from .config import Settings
+
+# Motivos de parada que indicam bloqueio por política de conteúdo.
+_BLOCKED = {"SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "RECITATION", "IMAGE_SAFETY"}
+
+@dataclass
+class GeminiChat:
+    """Sessão de conversa com o Gemini que mantém o histórico entre mensagens."""
+
+    settings: Settings
+    client: genai.Client | None = None
+    history: list[types.Content] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.client is None:
+            self.client = genai.Client(
+                api_key=self.settings.api_key,
+                # Repete automaticamente erros temporários (limite, servidor, rede).
+                http_options=types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=3)),
+            )
+
+    def reset(self) -> None:
+        self.history.clear()
+
+    def send(self, user_message: str, on_text: Callable[[str], None] | None = None) -> ChatReply:
+        """Envia uma mensagem, transmite a resposta via `on_text` e atualiza o histórico.
+
+        Se a chamada falhar, a mensagem do usuário é removida do histórico para que
+        a conversa continue válida e possa ser repetida.
+        """
+        if not user_message.strip():
+            raise AIError("A mensagem está vazia.")
+
+        self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+        try:
+            text, finish, usage, blocked_prompt = self._stream(on_text)
+        except BaseException:
+            self.history.pop()
+            raise
+
+        if blocked_prompt or finish in _BLOCKED:
+            self.history.pop()
+            raise AIError("O modelo bloqueou esta mensagem pelas regras de conteúdo do Google.")
+        if not text:
+            self.history.pop()
+            raise AIError("O modelo não devolveu nenhuma resposta. Tente reformular a mensagem.")
+
+        self.history.append(types.Content(role="model", parts=[types.Part.from_text(text=text)]))
+        return ChatReply(
+            text=text,
+            stop_reason=finish,
+            truncated=finish == "MAX_TOKENS",
+            model=self.settings.model,
+            input_tokens=(usage.prompt_token_count or 0) if usage else 0,
+            output_tokens=(usage.candidates_token_count or 0) if usage else 0,
+        )
+
+    def _stream(self, on_text: Callable[[str], None] | None):
+        assert self.client is not None
+        config = types.GenerateContentConfig(
+            system_instruction=self.settings.system_prompt,
+            max_output_tokens=self.settings.max_tokens,
+        )
+        parts: list[str] = []
+        finish = None
+        usage = None
+        blocked_prompt = False
+        try:
+            for chunk in self.client.models.generate_content_stream(
+                model=self.settings.model, contents=self.history, config=config
+            ):
+                if chunk.prompt_feedback and chunk.prompt_feedback.block_reason:
+                    blocked_prompt = True
+                if chunk.usage_metadata:
+                    usage = chunk.usage_metadata
+                if chunk.candidates and chunk.candidates[0].finish_reason:
+                    finish = chunk.candidates[0].finish_reason.name
+                if chunk.text:
+                    parts.append(chunk.text)
+                    if on_text:
+                        on_text(chunk.text)
+        except errors.ClientError as e:
+            raise self._client_error(e) from e
+        except errors.ServerError as e:
+            raise AIError(
+                f"O serviço do Google está instável no momento ({e.code}). Tente novamente.",
+                retryable=True,
+            ) from e
+        except errors.APIError as e:
+            raise AIError(f"Erro da API do Google ({e.code}): {e.message}") from e
+        except httpx2.TimeoutException as e:
+            raise AIError("A requisição expirou. Tente novamente.", retryable=True) from e
+        except httpx2.TransportError as e:
+            raise AIError("Falha de conexão com o Google. Verifique sua internet.", retryable=True) from e
+        return "".join(parts), finish, usage, blocked_prompt
+
+    def _client_error(self, e: errors.ClientError) -> AIError:
+        message = e.message or ""
+        if e.code == 400 and "API key" in message:
+            return AIError("Chave do Gemini inválida. Confira a chave no arquivo .env.")
+        if e.code in (401, 403):
+            return AIError(f"Sua chave não tem permissão para usar '{self.settings.model}'. Resposta do Google: {message}")
+        if e.code == 404:
+            return AIError(
+                f"Modelo '{self.settings.model}' não encontrado. Troque a linha CLAUDE_MODEL no .env "
+                "por outro modelo do Gemini (ex.: gemini-2.5-flash)."
+            )
+        if e.code == 429:
+            return AIError(
+                "Limite do plano grátis atingido. Espere um minuto e tente de novo "
+                "(o limite diário renova no dia seguinte).",
+                retryable=True,
+            )
+        return AIError(f"Requisição inválida ({e.code}): {message}")
