@@ -18,7 +18,7 @@ VERCEL_GATEWAY_URL = "https://ai-gateway.vercel.sh"
 DEFAULT_MODELS = {
     "anthropic": "claude-opus-5-5",
     "vercel": "anthropic/claude-haiku-5.5",
-    "gemini": "gemini-2.5-flash",
+    "gemini": "gemini-flash-latest",  # apelido do Google para o Flash mais recente
 }
 
 

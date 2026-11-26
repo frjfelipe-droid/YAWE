@@ -157,10 +157,10 @@ class ClaudeChat:
 
 
 
-def create_chat(settings: Settings):
+def create_chat(settings: Settings, on_model_change: Callable[[str, str], None] | None = None):
     """Cria a sessão de chat do provedor configurado (Anthropic, Vercel ou Gemini)."""
     if settings.provider == "gemini":
         from .gemini_client import GeminiChat
 
-        return GeminiChat(settings)
+        return GeminiChat(settings, on_model_change=on_model_change)
     return ClaudeChat(settings)

@@ -17,7 +17,12 @@ def main() -> int:
         print(f"[configuração] {e}", file=sys.stderr)
         return 1
 
-    chat = create_chat(settings)
+    chat = create_chat(
+        settings,
+        on_model_change=lambda old, new: print(
+            f"[aviso] o modelo '{old}' não está disponível; usando '{new}'.", file=sys.stderr
+        ),
+    )
     print(f"YAWE — conversando com {settings.model}. {HELP}")
 
     while True:

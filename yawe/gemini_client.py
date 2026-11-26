@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -22,8 +23,11 @@ class GeminiChat:
     settings: Settings
     client: genai.Client | None = None
     history: list[types.Content] = field(default_factory=list)
+    model: str = ""
+    on_model_change: Callable[[str, str], None] | None = None
 
     def __post_init__(self) -> None:
+        self.model = self.model or self.settings.model
         if self.client is None:
             self.client = genai.Client(
                 api_key=self.settings.api_key,
@@ -45,7 +49,20 @@ class GeminiChat:
 
         self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
         try:
-            text, finish, usage, blocked_prompt = self._stream(on_text)
+            try:
+                text, finish, usage, blocked_prompt = self._stream(on_text)
+            except _ModelNotFound:
+                # O Google aposenta modelos com frequência: escolhe outro disponível e tenta de novo.
+                old_model, self.model = self.model, self._pick_available_model()
+                if self.on_model_change:
+                    self.on_model_change(old_model, self.model)
+                text, finish, usage, blocked_prompt = self._stream(on_text)
+        except _ModelNotFound as e:
+            self.history.pop()
+            raise AIError(
+                f"Modelo '{self.model}' não encontrado. Coloque outro modelo do Gemini na linha "
+                "AI_MODEL do .env."
+            ) from e
         except BaseException:
             self.history.pop()
             raise
@@ -62,7 +79,7 @@ class GeminiChat:
             text=text,
             stop_reason=finish,
             truncated=finish == "MAX_TOKENS",
-            model=self.settings.model,
+            model=self.model,
             input_tokens=(usage.prompt_token_count or 0) if usage else 0,
             output_tokens=(usage.candidates_token_count or 0) if usage else 0,
         )
@@ -79,7 +96,7 @@ class GeminiChat:
         blocked_prompt = False
         try:
             for chunk in self.client.models.generate_content_stream(
-                model=self.settings.model, contents=self.history, config=config
+                model=self.model, contents=self.history, config=config
             ):
                 if chunk.prompt_feedback and chunk.prompt_feedback.block_reason:
                     blocked_prompt = True
@@ -106,17 +123,14 @@ class GeminiChat:
             raise AIError("Falha de conexão com o Google. Verifique sua internet.", retryable=True) from e
         return "".join(parts), finish, usage, blocked_prompt
 
-    def _client_error(self, e: errors.ClientError) -> AIError:
+    def _client_error(self, e: errors.ClientError) -> Exception:
         message = e.message or ""
         if e.code == 400 and "API key" in message:
             return AIError("Chave do Gemini inválida. Confira a chave no arquivo .env.")
         if e.code in (401, 403):
-            return AIError(f"Sua chave não tem permissão para usar '{self.settings.model}'. Resposta do Google: {message}")
+            return AIError(f"Sua chave não tem permissão para usar '{self.model}'. Resposta do Google: {message}")
         if e.code == 404:
-            return AIError(
-                f"Modelo '{self.settings.model}' não encontrado. Troque a linha CLAUDE_MODEL no .env "
-                "por outro modelo do Gemini (ex.: gemini-2.5-flash)."
-            )
+            return _ModelNotFound(message)
         if e.code == 429:
             return AIError(
                 "Limite do plano grátis atingido. Espere um minuto e tente de novo "
@@ -124,3 +138,31 @@ class GeminiChat:
                 retryable=True,
             )
         return AIError(f"Requisição inválida ({e.code}): {message}")
+
+    def _pick_available_model(self) -> str:
+        """Escolhe o melhor modelo "flash" estável que a chave pode usar para conversar."""
+        assert self.client is not None
+        try:
+            names = [
+                (m.name or "").removeprefix("models/")
+                for m in self.client.models.list()
+                if "generateContent" in (m.supported_actions or [])
+            ]
+        except errors.APIError as e:
+            raise _ModelNotFound(str(e)) from e
+
+        if "gemini-flash-latest" in names:
+            return "gemini-flash-latest"
+        skip = ("preview", "exp", "lite", "image", "tts", "audio", "live", "embedding", "thinking")
+        flash = [n for n in names if n.startswith("gemini") and "flash" in n and not any(w in n for w in skip)]
+        if not flash:
+            raise _ModelNotFound("nenhum modelo flash disponível")
+
+        def version(name: str) -> tuple[float, ...]:
+            return tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", name)) or (0.0,)
+
+        return max(flash, key=version)
+
+
+class _ModelNotFound(Exception):
+    """O modelo pedido não existe (ou foi aposentado) para esta chave."""

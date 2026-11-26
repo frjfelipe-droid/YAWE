@@ -38,7 +38,7 @@ Comandos no chat: `/limpar` zera o histórico, `/sair` encerra.
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `AI_MODEL` (ou `CLAUDE_MODEL`) | Google: `gemini-2.5-flash`; Vercel: `anthropic/claude-haiku-5.5`; Anthropic: `claude-opus-5-5` | Modelo |
+| `AI_MODEL` (ou `CLAUDE_MODEL`) | Google: `gemini-flash-latest` (se sumir, o app escolhe outro Flash disponível); Vercel: `anthropic/claude-haiku-5.5`; Anthropic: `claude-opus-5-5` | Modelo |
 | `CLAUDE_EFFORT` | `medium` | Só na Anthropic: `low` / `medium` / `high` / `xhigh` / `max` |
 | `CLAUDE_MAX_TOKENS` | `16000` | Limite de tokens por resposta |
 | `CLAUDE_SYSTEM_PROMPT` | assistente em pt-BR | Prompt de sistema |
