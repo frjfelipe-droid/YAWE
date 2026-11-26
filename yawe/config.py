@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import io
+import logging
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,7 +40,36 @@ class Settings:
     system_prompt: str
 
 
-def _detect_provider() -> tuple[str, str]:
+# Formatos de chave conhecidos, usados para achar a chave mesmo num .env mal formatado.
+_KEY_PATTERNS = (
+    ("gemini", re.compile(r"AIza[0-9A-Za-z_\-]{20,}")),
+    ("vercel", re.compile(r"vck_[0-9A-Za-z_\-]{20,}")),
+    ("anthropic", re.compile(r"sk-ant-[0-9A-Za-z_\-]{20,}")),
+)
+
+
+def _read_env_text(path: Path) -> str | None:
+    """Lê o .env aceitando as codificações que o Bloco de Notas pode usar."""
+    if not path.is_file():
+        return None
+    raw = path.read_bytes()
+    for encoding in ("utf-8-sig", "utf-16", "cp1252"):
+        try:
+            return raw.decode(encoding)
+        except UnicodeError:
+            continue
+    return None
+
+
+def _find_key_in_text(text: str | None) -> tuple[str, str] | None:
+    for provider, pattern in _KEY_PATTERNS:
+        match = pattern.search(text or "")
+        if match:
+            return provider, match.group(0)
+    return None
+
+
+def _detect_provider(env_text: str | None = None) -> tuple[str, str]:
     gemini_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     gateway_key = os.getenv("AI_GATEWAY_API_KEY", "").strip()
     anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
@@ -56,6 +88,11 @@ def _detect_provider() -> tuple[str, str]:
     if anthropic_key:
         return "anthropic", anthropic_key
 
+    # .env fora do formato NOME=valor (ex.: "GEMINI API KEY: AIza..."): procura a chave no texto.
+    found = _find_key_in_text(env_text)
+    if found:
+        return found
+
     raise ConfigError(
         "Nenhuma chave encontrada. No arquivo .env, coloque GEMINI_API_KEY=AIza... (Google, grátis), "
         "AI_GATEWAY_API_KEY=vck_... (Vercel) ou ANTHROPIC_API_KEY=sk-ant-... (Anthropic). "
@@ -63,8 +100,11 @@ def _detect_provider() -> tuple[str, str]:
     )
 
 
-def _model_for(provider: str) -> str:
+def _model_for(provider: str, env_text: str | None = None) -> str:
     model = (os.getenv("AI_MODEL") or os.getenv("CLAUDE_MODEL") or "").strip()
+    if not model and provider == "gemini":
+        match = re.search(r"\b(gemini-[0-9A-Za-z.\-]+)", env_text or "")
+        model = match.group(1) if match else ""
     if provider == "gemini":
         # Aceita o nome no formato da Vercel ("google/gemini-...") e ignora modelos de outros provedores.
         model = model.removeprefix("google/")
@@ -76,9 +116,13 @@ def _model_for(provider: str) -> str:
 def load_settings(env_file: Path | None = None) -> Settings:
     # override=False: variáveis que já existem no ambiente NÃO são sobrescritas
     # pelo .env, e o .env nunca é modificado por este código.
-    load_dotenv(env_file or PROJECT_ROOT / ".env", override=False)
+    env_text = _read_env_text(env_file or PROJECT_ROOT / ".env")
+    if env_text:
+        # Silencia os avisos em inglês do dotenv; linhas fora do padrão são tratadas abaixo.
+        logging.getLogger("dotenv.main").setLevel(logging.ERROR)
+        load_dotenv(stream=io.StringIO(env_text), override=False)
 
-    provider, api_key = _detect_provider()
+    provider, api_key = _detect_provider(env_text)
 
     effort = os.getenv("CLAUDE_EFFORT", "medium").strip().lower()
     if effort not in VALID_EFFORTS:
@@ -95,7 +139,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         provider=provider,
         api_key=api_key,
         base_url=VERCEL_GATEWAY_URL if provider == "vercel" else None,
-        model=_model_for(provider),
+        model=_model_for(provider, env_text),
         effort=effort,
         max_tokens=max_tokens,
         system_prompt=os.getenv(
