@@ -25,6 +25,12 @@ DEFAULT_MODELS = {
 }
 
 
+DEFAULT_SYSTEM_PROMPT = (
+    "Você é um assistente prestativo. Responda em português do Brasil, em texto simples "
+    "(sem markdown, sem asteriscos e sem tabelas), de forma clara e natural, como numa conversa."
+)
+
+
 class ConfigError(RuntimeError):
     """Configuração ausente ou inválida."""
 
@@ -38,6 +44,11 @@ class Settings:
     effort: str
     max_tokens: int
     system_prompt: str
+    # Voz (ElevenLabs) — opcional
+    elevenlabs_api_key: str | None = None
+    voice_id: str = "JBFqnCBsd6RMkjVDRZzb"  # "George", voz pronta da ElevenLabs
+    tts_model: str = "eleven_flash_v2_5"  # rápido, fala português e gasta menos créditos
+    voice_max_chars: int = 1000
 
 
 # Formatos de chave conhecidos, usados para achar a chave mesmo num .env mal formatado.
@@ -67,6 +78,17 @@ def _find_key_in_text(text: str | None) -> tuple[str, str] | None:
         if match:
             return provider, match.group(0)
     return None
+
+
+_ELEVENLABS_PATTERN = re.compile(r"\bsk_[0-9a-f]{40,}\b")
+
+
+def _elevenlabs_key(env_text: str | None) -> str | None:
+    key = os.getenv("ELEVENLABS_API_KEY", "").strip()
+    if key:
+        return key
+    match = _ELEVENLABS_PATTERN.search(env_text or "")
+    return match.group(0) if match else None
 
 
 def _detect_provider(env_text: str | None = None) -> tuple[str, str]:
@@ -135,6 +157,11 @@ def load_settings(env_file: Path | None = None) -> Settings:
     except ValueError as exc:
         raise ConfigError("CLAUDE_MAX_TOKENS deve ser um número inteiro.") from exc
 
+    try:
+        voice_max_chars = int(os.getenv("ELEVENLABS_MAX_CHARS", "1000"))
+    except ValueError as exc:
+        raise ConfigError("ELEVENLABS_MAX_CHARS deve ser um número inteiro.") from exc
+
     return Settings(
         provider=provider,
         api_key=api_key,
@@ -142,8 +169,9 @@ def load_settings(env_file: Path | None = None) -> Settings:
         model=_model_for(provider, env_text),
         effort=effort,
         max_tokens=max_tokens,
-        system_prompt=os.getenv(
-            "CLAUDE_SYSTEM_PROMPT",
-            "Você é um assistente prestativo. Responda em português do Brasil.",
-        ),
+        system_prompt=os.getenv("AI_SYSTEM_PROMPT") or os.getenv("CLAUDE_SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT,
+        elevenlabs_api_key=_elevenlabs_key(env_text),
+        voice_id=os.getenv("ELEVENLABS_VOICE_ID", "").strip() or "JBFqnCBsd6RMkjVDRZzb",
+        tts_model=os.getenv("ELEVENLABS_MODEL", "").strip() or "eleven_flash_v2_5",
+        voice_max_chars=voice_max_chars,
     )
