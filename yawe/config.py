@@ -49,6 +49,9 @@ class Settings:
     voice_id: str = "JBFqnCBsd6RMkjVDRZzb"  # "George", voz pronta da ElevenLabs
     tts_model: str = "eleven_flash_v2_5"  # rápido, fala português e gasta menos créditos
     voice_max_chars: int = 1000
+    # App web (celular)
+    assistant_name: str = "YAWE"
+    app_password: str | None = None
 
 
 # Formatos de chave conhecidos, usados para achar a chave mesmo num .env mal formatado.
@@ -174,4 +177,6 @@ def load_settings(env_file: Path | None = None) -> Settings:
         voice_id=os.getenv("ELEVENLABS_VOICE_ID", "").strip() or "JBFqnCBsd6RMkjVDRZzb",
         tts_model=os.getenv("ELEVENLABS_MODEL", "").strip() or "eleven_flash_v2_5",
         voice_max_chars=voice_max_chars,
+        assistant_name=os.getenv("ASSISTANT_NAME", "").strip() or "YAWE",
+        app_password=os.getenv("APP_PASSWORD", "").strip() or None,
     )

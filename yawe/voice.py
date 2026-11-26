@@ -46,11 +46,19 @@ class Voice:
         self._turn = 0
 
     def speak(self, text: str) -> None:
+        """Gera a fala e toca no próprio computador (usado pelo app de terminal)."""
         speech = clean_for_speech(text, self.max_chars)
         if not speech:
             return
         audio = self._synthesize(speech)
         self._play(audio)
+
+    def synthesize_mp3(self, text: str) -> bytes | None:
+        """Gera a fala em MP3 (formato que todo celular toca); None se não houver o que falar."""
+        speech = clean_for_speech(text, self.max_chars)
+        if not speech:
+            return None
+        return self._synthesize(speech, output_format="mp3_44100_128")
 
     def list_voices(self) -> list[tuple[str, str, bool]]:
         """(nome, ID, é voz padrão) — as vozes padrão ("premade") funcionam no plano grátis."""
@@ -70,13 +78,13 @@ class Voice:
         items = [(v.name or "?", v.voice_id, v.category == "premade") for v in voices]
         return sorted(items, key=lambda item: (not item[2], item[0].lower()))
 
-    def _synthesize(self, text: str) -> bytes:
+    def _synthesize(self, text: str, output_format: str = OUTPUT_FORMAT) -> bytes:
         try:
             chunks = self.client.text_to_speech.convert(
                 self.voice_id,
                 text=text,
                 model_id=self.model_id,
-                output_format=OUTPUT_FORMAT,
+                output_format=output_format,
             )
             return b"".join(chunks)
         except ApiError as e:
