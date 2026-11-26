@@ -60,8 +60,8 @@ class GeminiChat:
         except _ModelNotFound as e:
             self.history.pop()
             raise AIError(
-                f"Modelo '{self.model}' não encontrado. Coloque outro modelo do Gemini na linha "
-                "AI_MODEL do .env."
+                f"Modelo '{self.model}' não encontrado. Detalhe: {e}. "
+                "Coloque outro modelo do Gemini na linha AI_MODEL do .env."
             ) from e
         except BaseException:
             self.history.pop()
@@ -151,17 +151,25 @@ class GeminiChat:
         except errors.APIError as e:
             raise _ModelNotFound(str(e)) from e
 
-        if "gemini-flash-latest" in names:
-            return "gemini-flash-latest"
-        skip = ("preview", "exp", "lite", "image", "tts", "audio", "live", "embedding", "thinking")
-        flash = [n for n in names if n.startswith("gemini") and "flash" in n and not any(w in n for w in skip)]
-        if not flash:
-            raise _ModelNotFound("nenhum modelo flash disponível")
+        names = [n for n in names if n != self.model]  # o atual acabou de falhar
+        if not names:
+            raise _ModelNotFound("a chave não lista nenhum modelo de conversa")
 
         def version(name: str) -> tuple[float, ...]:
             return tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", name)) or (0.0,)
 
-        return max(flash, key=version)
+        skip = ("preview", "exp", "lite", "image", "tts", "audio", "live", "embedding", "thinking")
+        gemini = [n for n in names if n.startswith("gemini")]
+        stable_flash = [n for n in gemini if "flash" in n and not any(w in n for w in skip)]
+        if "gemini-flash-latest" in names:
+            return "gemini-flash-latest"
+        if stable_flash:
+            return max(stable_flash, key=version)
+        # Sem Flash estável: aceita qualquer Gemini de texto (preview/lite incluídos).
+        text_models = [n for n in gemini if not any(w in n for w in ("image", "tts", "audio", "live", "embedding"))]
+        if text_models:
+            return max(text_models, key=version)
+        raise _ModelNotFound("modelos disponíveis: " + ", ".join(names[:8]))
 
 
 class _ModelNotFound(Exception):
