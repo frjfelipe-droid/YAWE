@@ -32,7 +32,7 @@ AI_GATEWAY_API_KEY=vck_...      # Vercel
 ANTHROPIC_API_KEY=sk-ant-...    # Anthropic
 ```
 
-Comandos no chat: `/limpar` zera o histórico, `/sair` encerra.
+Comandos no chat: `/modelos` lista os modelos da sua chave, `/limpar` zera o histórico, `/sair` encerra.
 
 ## Configuração opcional
 

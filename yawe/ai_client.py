@@ -54,6 +54,13 @@ class ClaudeChat:
     def reset(self) -> None:
         self.history.clear()
 
+    def list_models(self) -> list[str]:
+        assert self.client is not None
+        try:
+            return sorted(m.id for m in self.client.models.list())
+        except anthropic.APIError as e:
+            raise AIError(f"Não foi possível listar os modelos: {e}") from e
+
     def send(self, user_message: str, on_text: Callable[[str], None] | None = None) -> ChatReply:
         """Envia uma mensagem, transmite a resposta via `on_text` e atualiza o histórico.
 

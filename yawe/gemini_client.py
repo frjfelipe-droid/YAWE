@@ -32,7 +32,11 @@ class GeminiChat:
             self.client = genai.Client(
                 api_key=self.settings.api_key,
                 # Repete automaticamente erros temporários (limite, servidor, rede).
-                http_options=types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=3)),
+                # Limite de tempo (ms) para não ficar esperando para sempre; 2 tentativas no máximo.
+                http_options=types.HttpOptions(
+                    timeout=90_000,
+                    retry_options=types.HttpRetryOptions(attempts=2, max_delay=10.0),
+                ),
             )
 
     def reset(self) -> None:
@@ -138,6 +142,20 @@ class GeminiChat:
                 retryable=True,
             )
         return AIError(f"Requisição inválida ({e.code}): {message}")
+
+    def list_models(self) -> list[str]:
+        """Modelos de conversa que esta chave pode usar."""
+        assert self.client is not None
+        try:
+            return sorted(
+                (m.name or "").removeprefix("models/")
+                for m in self.client.models.list()
+                if "generateContent" in (m.supported_actions or [])
+            )
+        except errors.APIError as e:
+            raise AIError(f"Não foi possível listar os modelos ({e.code}): {e.message}") from e
+        except httpx2.TransportError as e:
+            raise AIError("Falha de conexão com o Google. Verifique sua internet.") from e
 
     def _pick_available_model(self) -> str:
         """Escolhe o melhor modelo "flash" estável que a chave pode usar para conversar."""

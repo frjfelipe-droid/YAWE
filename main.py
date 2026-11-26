@@ -7,7 +7,7 @@ import sys
 from yawe.ai_client import AIError, create_chat
 from yawe.config import ConfigError, load_settings
 
-HELP = "Comandos: /limpar (zera o histórico), /sair (encerra)."
+HELP = "Comandos: /modelos (lista os modelos da sua chave), /limpar (zera o histórico), /sair (encerra)."
 
 
 def main() -> int:
@@ -20,7 +20,7 @@ def main() -> int:
     chat = create_chat(
         settings,
         on_model_change=lambda old, new: print(
-            f"[aviso] o modelo '{old}' não está disponível; usando '{new}'.", file=sys.stderr
+            f"\n[aviso] o modelo '{old}' não está disponível; usando '{new}'.", file=sys.stderr
         ),
     )
     print(f"YAWE — conversando com {settings.model}. {HELP}")
@@ -36,12 +36,23 @@ def main() -> int:
             continue
         if user_input in {"/sair", "/exit"}:
             return 0
+        if user_input in {"/modelos", "/models"}:
+            try:
+                names = chat.list_models()
+            except AIError as e:
+                print(f"[erro] {e}", file=sys.stderr)
+                continue
+            print("Modelos disponíveis para a sua chave:")
+            for name in names:
+                print(f"  - {name}")
+            print("Para usar um deles, coloque no .env: AI_MODEL=nome-do-modelo")
+            continue
         if user_input in {"/limpar", "/reset"}:
             chat.reset()
             print("Histórico apagado.")
             continue
 
-        print("\nIA: ", end="", flush=True)
+        print("\nIA (pensando...): ", end="", flush=True)
         try:
             reply = chat.send(user_input, on_text=lambda t: print(t, end="", flush=True))
         except AIError as e:
