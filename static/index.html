@@ -325,7 +325,8 @@
   // Microfone: reconhecimento de voz do próprio navegador (grátis)
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognizer = null;
-  if (!Recognition) {
+  // Navegadores só liberam o microfone em HTTPS (ou no próprio PC). Pelo Wi-Fi (http), use o microfone do teclado.
+  if (!Recognition || !window.isSecureContext) {
     micBtn.classList.add("hidden");
   } else {
     micBtn.addEventListener("click", () => {
