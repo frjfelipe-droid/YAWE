@@ -52,14 +52,23 @@ class Voice:
         audio = self._synthesize(speech)
         self._play(audio)
 
-    def list_voices(self) -> list[tuple[str, str]]:
+    def list_voices(self) -> list[tuple[str, str, bool]]:
+        """(nome, ID, é voz padrão) — as vozes padrão ("premade") funcionam no plano grátis."""
+        voices = []
+        token = None
         try:
-            result = self.client.voices.search(page_size=50)
+            while True:
+                page = self.client.voices.search(page_size=100, next_page_token=token)
+                voices.extend(page.voices)
+                token = getattr(page, "next_page_token", None)
+                if not getattr(page, "has_more", False) or not token:
+                    break
         except ApiError as e:
             raise self._api_error(e) from e
         except httpx.HTTPError as e:
             raise VoiceError("Falha de conexão com a ElevenLabs.") from e
-        return [(v.name or "?", v.voice_id) for v in result.voices]
+        items = [(v.name or "?", v.voice_id, v.category == "premade") for v in voices]
+        return sorted(items, key=lambda item: (not item[2], item[0].lower()))
 
     def _synthesize(self, text: str) -> bytes:
         try:
@@ -111,6 +120,11 @@ class Voice:
             return VoiceError("Chave da ElevenLabs inválida. Confira ELEVENLABS_API_KEY no .env.")
         if e.status_code == 404 or status == "voice_not_found":
             return VoiceError("Voz não encontrada. Use /vozes e troque ELEVENLABS_VOICE_ID no .env.")
+        if e.status_code == 402 and "library voices" in message:
+            return VoiceError(
+                "Essa voz é da biblioteca da ElevenLabs e exige plano pago. No plano grátis, "
+                "use uma voz marcada como [grátis] no comando /vozes."
+            )
         if e.status_code == 429:
             return VoiceError("Muitas requisições de voz seguidas. Espere um pouco.")
         return VoiceError(f"Erro da ElevenLabs ({e.status_code}): {message}")

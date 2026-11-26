@@ -79,9 +79,10 @@ def main() -> int:
             except Exception as e:  # erros de voz nunca derrubam o chat
                 print(f"[voz] {e}", file=sys.stderr)
                 continue
-            print("Vozes da sua conta (nome — ID):")
-            for name, voice_id in voices:
-                print(f"  - {name} — {voice_id}")
+            print("Vozes da sua conta (nome — ID). [grátis] = funciona no plano grátis da API:")
+            for name, voice_id, free in voices:
+                tag = "[grátis] " if free else "[pago]   "
+                print(f"  {tag}{name} — {voice_id}")
             print("Para usar uma delas, coloque no .env: ELEVENLABS_VOICE_ID=ID-da-voz")
             continue
         if user_input in {"/limpar", "/reset"}:
