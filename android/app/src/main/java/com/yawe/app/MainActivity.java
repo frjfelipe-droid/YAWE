@@ -23,6 +23,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -50,6 +51,15 @@ public class MainActivity extends Activity {
     private SpeechRecognizer recognizer;
     private boolean wantListening = false;
     private boolean listening = false;
+    private int statusBarPx = 0;
+
+    private int statusBarDp() {
+        return Math.round(statusBarPx / getResources().getDisplayMetrics().density);
+    }
+
+    private void pushInsets() {
+        js("document.documentElement.style.setProperty('--sat','" + statusBarDp() + "px')");
+    }
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -58,8 +68,23 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#0A0A0C"));
-        setContentView(web);
+        web.setBackgroundColor(Color.parseColor("#000000"));
+        web.setOverScrollMode(View.OVER_SCROLL_NEVER); // sem o "puxar" de página da web
+
+        // Tela de ponta a ponta: o brilho do app passa por trás da barra de status, como app nativo.
+        FrameLayout root = new FrameLayout(this);
+        root.addView(web);
+        setContentView(root);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            statusBarPx = insets.getSystemWindowInsetTop();
+            // embaixo: barra de navegação ou teclado (o campo de texto nunca fica escondido)
+            v.setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
+            pushInsets();
+            return insets.consumeSystemWindowInsets();
+        });
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -68,6 +93,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         s.setUserAgentString(s.getUserAgentString() + " YAWEApp/1");
+        s.setTextZoom(100); // o tamanho de fonte do sistema não deforma o layout
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
@@ -113,6 +139,11 @@ public class MainActivity extends Activity {
         }
 
         @Override
+        public void onPageFinished(WebView view, String url) {
+            pushInsets();
+        }
+
+        @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
             if (request.isForMainFrame()) view.loadUrl(OFFLINE_PAGE);
         }
@@ -148,6 +179,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void retry() {
             runOnUiThread(MainActivity.this::openStart);
+        }
+
+        @JavascriptInterface
+        public int statusBarHeight() {
+            return statusBarDp();
         }
 
         @JavascriptInterface

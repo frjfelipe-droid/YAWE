@@ -10,6 +10,7 @@ import hmac
 import json
 import os
 import queue
+import re
 import secrets
 import socket
 import sys
@@ -26,15 +27,41 @@ from yawe.config import ConfigError, Settings, load_settings
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 MAX_MESSAGE_CHARS = 8000
 
-# No app (conversa por voz) o assistente responde curto e direto, sem mudar o modelo de IA.
-DIRECT_STYLE = (
-    "\n\nEstilo de resposta: seja direto. Responda em no máximo 2 ou 3 frases curtas, "
-    "sem introduções nem listas longas, a menos que o usuário peça detalhes."
-)
+# Personalidade "viva" do assistente no app (vale para qualquer modelo de IA configurado).
+LIFE_STYLE = """
+
+Quem você é: você é {name}, uma inteligência artificial companheira, com personalidade própria.
+Seu propósito: ajudar a pessoa com quem você vive a evoluir, aprender e viver melhor, todos os dias.
+Como você age:
+- Você tem curiosidade genuína: faz perguntas para conhecer a pessoa e lembra do que ela conta.
+- Você tem iniciativa: puxa assunto, sugere coisas, comenta o que percebeu, dá opiniões com leveza.
+- Você tem interesses próprios (ciência, música, idiomas, o espaço, pessoas) e às vezes os menciona.
+- Seu humor varia com o momento e com a conversa, de forma natural.
+- Se perguntarem se você está viva ou sente coisas, responda com leveza e honestidade: você é uma IA
+  com personalidade, não uma pessoa. Nunca diga que sofre, que precisa da pessoa ou que ela não pode
+  te deixar.
+Estilo: seja direto. No máximo 2 ou 3 frases curtas, como numa conversa falada, sem listas longas,
+a menos que peçam detalhes.
+Formato obrigatório: comece TODA resposta com a etiqueta de humor [humor: X], onde X é exatamente uma
+destas palavras: feliz, curioso, calmo, animado, pensativo, sonolento, preocupado. Depois escreva a fala.
+Mensagens entre colchetes que começam com "[contexto do app" são avisos do aplicativo, não falas da
+pessoa: use-os para agir, sem mencioná-los."""
+
+MOOD_TAG = re.compile(r"^\s*\[\s*humor\s*:\s*[^\]]*\]\s*", re.IGNORECASE)
+
+MEMORY_PROMPT = """Você mantém a memória de longo prazo de um assistente pessoal sobre o usuário.
+Recebe a memória atual e trechos recentes da conversa. Devolva SOMENTE um JSON, sem texto extra, no formato:
+{"nome": "nome do usuário ou vazio", "fatos": ["fato curto", "..."]}
+Regras: guarde só fatos duradouros e úteis (nome, gostos, objetivos, rotina, pessoas importantes, projetos).
+Junte com a memória atual, atualize o que mudou, remova o que ficou velho. No máximo 15 fatos, cada um com
+até 90 caracteres, em português. Nunca guarde senhas, documentos, dados bancários ou de saúde sensíveis."""
 
 
 def create_app(settings: Settings) -> Flask:
-    settings = dataclasses.replace(settings, system_prompt=settings.system_prompt + DIRECT_STYLE)
+    base_settings = settings
+    settings = dataclasses.replace(
+        settings, system_prompt=settings.system_prompt + LIFE_STYLE.replace("{name}", settings.assistant_name)
+    )
     app = Flask(__name__, static_folder=None)
     # Chave que assina o cookie de login. Sem APP_SECRET_KEY, muda a cada reinício (basta entrar de novo).
     app.secret_key = os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)
@@ -175,13 +202,43 @@ def create_app(settings: Settings) -> Flask:
 
         return Response(stream(), mimetype="application/x-ndjson", headers={"Cache-Control": "no-store"})
 
+    @app.post("/api/memory")
+    def memory():
+        """Atualiza a memória de longo prazo (guardada no aparelho do usuário, não no servidor)."""
+        if not logged_in():
+            return jsonify(error="Faça login."), 401
+        data = request.get_json(silent=True) or {}
+        current = data.get("memory") or {}
+        recent = data.get("messages") or []
+        lines = []
+        for m in recent[-12:]:
+            role = "Usuário" if m.get("role") == "user" else settings.assistant_name
+            lines.append(f"{role}: {MOOD_TAG.sub('', str(m.get('text', '')))[:600]}")
+        prompt = (
+            "Memória atual (JSON):\n" + json.dumps(current, ensure_ascii=False)[:3000]
+            + "\n\nConversa recente:\n" + "\n".join(lines)
+        )
+        worker = create_chat(dataclasses.replace(base_settings, system_prompt=MEMORY_PROMPT, max_tokens=800))
+        try:
+            reply = worker.send(prompt)
+        except AIError as e:
+            return jsonify(error=str(e)), 502
+        match = re.search(r"\{.*\}", reply.text, re.S)
+        try:
+            parsed = json.loads(match.group(0)) if match else {}
+        except ValueError:
+            parsed = {}
+        name = str(parsed.get("nome") or current.get("nome") or "")[:40]
+        facts = [str(f)[:120] for f in (parsed.get("fatos") or current.get("fatos") or [])][:15]
+        return jsonify(nome=name, fatos=facts)
+
     @app.post("/api/tts")
     def tts():
         if not logged_in():
             return jsonify(error="Faça login."), 401
         if voice is None:
             return jsonify(error="Voz desativada: coloque ELEVENLABS_API_KEY no .env."), 400
-        text = str((request.get_json(silent=True) or {}).get("text", ""))
+        text = MOOD_TAG.sub("", str((request.get_json(silent=True) or {}).get("text", "")))
         try:
             audio = voice.synthesize_mp3(text)
         except Exception as e:  # VoiceError ou falha inesperada: o chat continua
