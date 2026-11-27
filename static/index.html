@@ -268,6 +268,53 @@
   .hist .m.ai { align-self: flex-start; background: var(--glass-2); border-bottom-left-radius: 6px; }
   .empty { color: var(--text-3); text-align: center; padding: 30px 20px; font-size: 15px; }
 
+
+  /* ---------- Evolução: roda de equilíbrio ---------- */
+  .bal-top { align-items: center; }
+  .bal-title { display: flex; align-items: center; gap: 12px; }
+  .bal-title h1 { font-size: 30px; font-weight: 700; letter-spacing: -.03em; }
+  .period { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px 0 14px; border-radius: 99px; background: rgba(255,255,255,.08); font-size: 14px; color: var(--text-2); }
+  .period svg { width: 15px; height: 15px; }
+  .bal-scroll { padding-bottom: calc(120px + var(--bottom)); }
+  .wheel-wrap { width: 100%; max-width: 420px; margin: 4px auto 0; aspect-ratio: 1; }
+  #wheel { width: 100%; height: 100%; overflow: visible; }
+  #wheel .lbl { font: 600 10.5px var(--font); letter-spacing: .14em; fill: rgba(235,235,245,.38); text-transform: uppercase; }
+  #wheel .score { font: 600 34px var(--font); letter-spacing: -.03em; fill: #fff; }
+  #wheel .of { font: 500 15px var(--font); fill: rgba(235,235,245,.45); }
+  #wheel .spark { animation: twinkle 2.6s ease-in-out infinite; }
+  @keyframes twinkle { 50% { opacity: .15; } }
+  #wheel .seg { cursor: pointer; transition: opacity .2s; }
+  #wheel .seg:active { opacity: .7; }
+  .bal-sub { text-align: center; color: var(--text-2); font-size: 15px; margin: 2px 0 14px; }
+  .areas { display: flex; flex-direction: column; gap: 10px; }
+  .area { display: flex; align-items: center; gap: 14px; padding: 14px 14px 14px 12px; border-radius: 22px; background: #141416; border: 1px solid rgba(255,255,255,.05); width: 100%; text-align: left; }
+  .area-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.08), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.06); }
+  .area-ic svg { width: 22px; height: 22px; }
+  .area .grow { flex: 1; min-width: 0; }
+  .area h4 { margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .area .stats { display: flex; gap: 12px; color: var(--text-2); font-size: 12.5px; }
+  .area .stats span { display: inline-flex; align-items: center; gap: 4px; }
+  .area .stats svg { width: 13px; height: 13px; }
+  .area .pct { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 16px; color: #3ee68b; }
+  .area .pct .tr { font-size: 13px; }
+  .area .pct .tr.up { color: #3ee68b; } .area .pct .tr.down { color: #ff5f6d; }
+  .area .chev { width: 18px; height: 18px; color: var(--text-3); }
+  .dock { position: fixed; left: 14px; right: 14px; bottom: calc(14px + var(--bottom)); z-index: 6; display: flex; gap: 10px; align-items: center; }
+  .dock-pill { flex: 1; display: flex; align-items: center; gap: 4px; height: 64px; padding: 6px; border-radius: 99px; background: rgba(28,28,32,.82); border: 1px solid var(--stroke); -webkit-backdrop-filter: blur(30px) saturate(160%); backdrop-filter: blur(30px) saturate(160%); }
+  .dock-btn { position: relative; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: rgba(235,235,245,.65); flex: none; }
+  .dock-btn svg { width: 23px; height: 23px; }
+  .dock-btn .badge { position: absolute; top: 5px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #fff; color: #000; font: 700 11px/18px var(--font); text-align: center; }
+  .dock-active { flex: 1; height: 52px; border-radius: 99px; display: grid; place-items: center; background: rgba(255,255,255,.1); color: #fff; }
+  .dock-active svg { width: 24px; height: 24px; }
+  .dock-orb { width: 64px; height: 64px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; gap: 9px;
+    background: radial-gradient(circle at 35% 30%, #ff8a8a, #e01b2c 55%, #8a0a14); box-shadow: 0 0 26px rgba(255, 40, 60, .55), inset 0 -4px 10px rgba(0,0,0,.35); }
+  .dock-orb i { width: 7px; height: 9px; border-radius: 4px; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.8); animation: orbBlink 4s infinite; }
+  @keyframes orbBlink { 0%, 92%, 100% { transform: none; } 95% { transform: scaleY(.15); } }
+  .area-head { display: flex; align-items: center; gap: 14px; padding: 4px 6px 18px; }
+  .area-head h3 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .area-head small { color: var(--text-2); font-size: 14px; }
+  .area-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
   .toast { position: fixed; left: 50%; bottom: calc(100px + var(--bottom)); transform: translateX(-50%); z-index: 40; max-width: calc(100% - 40px); padding: 11px 18px; border-radius: 16px; font-size: 14px; text-align: center; background: rgba(40,40,46,.9); border: 1px solid var(--stroke); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); animation: blurIn .35s both; }
   @media (min-width: 720px) { .scroll > *, #face .captions, #face .hero { max-width: 560px; margin-left: auto; margin-right: auto; width: 100%; } }
 </style>
@@ -322,44 +369,51 @@
 <div class="sheet-bg hidden" id="menu">
   <div class="sheet">
     <div class="grabber"></div>
-    <button class="menu-item tap" data-go="upgrade"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9a55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span>Upgrade<small>Cursos e habilidades</small></span></button>
+    <button class="menu-item tap" data-go="upgrade"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9a55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span>Evolução<small>Seu equilíbrio e o curso de espanhol</small></span></button>
     <button class="menu-item tap" data-go="history"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Conversa<small>O que falamos hoje</small></span></button>
     <button class="menu-item tap" data-go="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span><span>Ajustes<small>Voz, escuta e memória</small></span></button>
   </div>
 </div>
 
-<!-- ================= Upgrade ================= -->
+<!-- ================= Evolução (roda de equilíbrio) ================= -->
 <section id="upgrade" class="screen hidden">
-  <div class="topbar">
-    <button class="circle tap" data-back aria-label="Voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
-    <h1>Upgrade</h1><span class="spacer"></span>
-  </div>
-  <div class="scroll">
-    <h2 class="title" style="margin-top:10px"><span class="dim">Evolua</span>todos os dias.</h2>
-    <div class="seg right" id="seg"><span class="knob"></span><button data-seg="skills">Habilidades</button><button data-seg="courses" class="active">Cursos</button></div>
-
-    <div class="list" id="courses">
-      <button class="card item tap" data-go="course">
-        <div class="thumb t-es"><b>ES</b></div>
-        <div class="info">
-          <span class="tag ready"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.8 3-.2.9 2.9 2.5 1.7-.9 2.8.9 2.8-2.5 1.7-.9 2.9-3-.2L12 22l-2.4-1.8-3 .2-.9-2.9-2.5-1.7.9-2.8-.9-2.8 2.5-1.7.9-2.9 3 .2z"/><path d="m8.5 12 2.3 2.3 4.7-4.6" stroke="#000" stroke-width="2" fill="none"/></svg>Disponível</span>
-          <h3>Espanhol</h3><p>Do zero à conversa.</p>
-          <div class="meta"><div class="thin-bar"><i id="esMini" style="width:0%"></i></div><span id="esMiniText">Nível 1</span></div>
-        </div>
-      </button>
-      <div class="card item"><div class="thumb t-en"><b>EN</b></div><div class="info"><span class="tag soon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2" stroke="#1b1030" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Em breve</span><h3>Inglês</h3><p>Viagens e trabalho.</p></div></div>
-      <div class="card item"><div class="thumb t-fr"><b>FR</b></div><div class="info"><span class="tag sched"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agendado</span><h3>Francês</h3><p>O básico para se virar.</p></div></div>
-      <div class="card item"><div class="thumb t-it"><b>IT</b></div><div class="info"><span class="tag soon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2" stroke="#1b1030" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Em breve</span><h3>Italiano</h3><p>Palavras e frases essenciais.</p></div></div>
+  <div class="topbar bal-top">
+    <div class="bal-title"><h1>Evolução</h1>
+      <button class="period tap" id="periodBtn"><span id="periodText">em 30 dias</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
     </div>
-
-    <div class="list hidden" id="skills">
-      <div class="card item"><div class="thumb t-a"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2" fill="#fff"/></svg></div><div class="info"><span class="tag prog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>Em construção</span><h3>Foco</h3><p>Sessões guiadas para concentrar.</p></div></div>
-      <div class="card item"><div class="thumb t-b"><svg viewBox="0 0 24 24" fill="none" stroke="#2a0600" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V6a3 3 0 0 0-3-3zM15 3a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/></svg></div><div class="info"><span class="tag soon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2" stroke="#1b1030" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Em breve</span><h3>Memória</h3><p>Exercícios rápidos para lembrar mais.</p></div></div>
-      <div class="card item"><div class="thumb t-c"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4"/></svg></div><div class="info"><span class="tag hot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 11 11c0-4 1-9 1-9z"/></svg>Prioridade</span><h3>Oratória</h3><p>Fale melhor conversando com o <span class="app-name">YAWE</span>.</p></div></div>
-      <div class="card item"><div class="thumb t-d"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9a55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="info"><span class="tag soon"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2" stroke="#1b1030" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Em breve</span><h3>Produtividade</h3><p>Rotinas e tarefas inteligentes.</p></div></div>
+    <div style="display:flex;gap:10px">
+      <button class="circle tap" id="shareBtn" aria-label="Compartilhar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg></button>
+      <button class="circle tap" data-go="settings" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
     </div>
   </div>
+  <div class="scroll bal-scroll">
+    <div class="wheel-wrap"><svg id="wheel" viewBox="0 0 360 360" aria-label="Roda de equilíbrio"></svg></div>
+    <div class="bal-sub" id="balSub">planejamento</div>
+    <div class="areas" id="areas"></div>
+  </div>
+  <nav class="dock">
+    <div class="dock-pill">
+      <button class="dock-btn tap" data-go="history" aria-label="Conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg></button>
+      <button class="dock-btn tap" data-go="course" aria-label="Espanhol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><b class="badge" id="dockBadge">0</b></button>
+      <button class="dock-btn tap" id="dockFocus" aria-label="Foco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="m21 3-6.5 6.5"/></svg></button>
+      <span class="dock-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M4.6 15.5a8.5 8.5 0 0 1 14.8-7M19.4 8.5a8.5 8.5 0 0 1-14.8 7"/><circle cx="19.5" cy="8.3" r="1.4" fill="currentColor"/></svg></span>
+    </div>
+    <button class="dock-orb tap" id="dockOrb" aria-label="Falar com o YAWE"><i></i><i></i></button>
+  </nav>
 </section>
+
+<!-- Folha de uma área (registrar / praticar com o YAWE) -->
+<div class="sheet-bg hidden" id="areaSheet">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <div class="area-head"><span class="area-ic" id="sheetIc"></span><div><h3 id="sheetTitle">Área</h3><small id="sheetSub"></small></div></div>
+    <div class="area-actions">
+      <button class="pill-btn ghost tap" data-log="15">+15 min hoje</button>
+      <button class="pill-btn ghost tap" data-log="30">+30 min hoje</button>
+    </div>
+    <button class="pill-btn tap" id="sheetPractice">Praticar com o YAWE</button>
+  </div>
+</div>
 
 <!-- ================= Curso ================= -->
 <section id="course" class="screen hidden">
@@ -506,14 +560,15 @@
   $("menu").addEventListener("click", (e) => { if (e.target.id === "menu") closeMenu(); });
 
   // Cor da luz ambiente por tela
-  const SCREEN_GLOW = { upgrade: ["rgba(255,122,47,.42)", "rgba(255,60,120,.16)"], course: ["rgba(255,122,47,.48)", "rgba(255,190,90,.18)"], lesson: ["rgba(255,122,47,.30)", "rgba(255,190,90,.10)"], settings: ["rgba(120,120,140,.28)", "rgba(80,80,100,.12)"], history: ["rgba(120,120,140,.28)", "rgba(80,80,100,.12)"] };
+  const SCREEN_GLOW = { upgrade: ["rgba(90,90,110,.22)", "rgba(60,60,80,.10)"], course: ["rgba(255,122,47,.48)", "rgba(255,190,90,.18)"], lesson: ["rgba(255,122,47,.30)", "rgba(255,190,90,.10)"], settings: ["rgba(120,120,140,.28)", "rgba(80,80,100,.12)"], history: ["rgba(120,120,140,.28)", "rgba(80,80,100,.12)"] };
   function setGlow(a, b) { const r = document.documentElement.style; r.setProperty("--g1", a); r.setProperty("--g2", b); }
   function onScreen(name) {
     if (name === "face" || name === "login") applyMoodGlow(); else setGlow(...SCREEN_GLOW[name]);
     if (name === "face") earsResume(); else earsPause();
     if (name === "settings") renderSettings();
     if (name === "history") renderHistory();
-    if (name === "course" || name === "upgrade") renderCourse();
+    if (name === "course") renderCourse();
+    if (name === "upgrade") renderBalance(true);
   }
   function toast(text) {
     document.querySelectorAll(".toast").forEach((t) => t.remove());
@@ -964,7 +1019,6 @@
   function renderCourse() {
     const s = esData(), level = Math.floor(s.xp / 100) + 1, pct = s.xp % 100, learned = s.learned.length;
     const todayXp = s.days[today()] || 0, streak = streakOf(s.days);
-    $("esMini").style.width = pct + "%"; $("esMiniText").textContent = "Nível " + level;
     $("courseDim").textContent = "Nível " + level;
     $("courseMain").textContent = todayXp >= GOAL ? "Meta de hoje feita." : streak ? "Continue a sequência." : "Comece hoje.";
     $("lvlNum").textContent = level; $("lvlPct").textContent = pct;
@@ -1032,13 +1086,150 @@
   }));
   $("learnBtn").addEventListener("click", () => blurTap($("learnBtn"), startLesson));
   $("practiceBtn").addEventListener("click", () => blurTap($("practiceBtn"), () => send("Vamos praticar espanhol. Fale comigo em espanhol simples, uma frase por vez, e corrija meus erros com gentileza.")));
-  document.querySelectorAll("[data-seg]").forEach((b) => b.addEventListener("click", () => {
-    const right = b.dataset.seg === "courses";
-    $("seg").classList.toggle("right", right);
-    document.querySelectorAll("[data-seg]").forEach((x) => x.classList.toggle("active", x === b));
-    const on = $(right ? "courses" : "skills"), off = $(right ? "skills" : "courses");
-    off.classList.add("hidden"); on.classList.remove("hidden"); on.classList.remove("blur-in"); void on.offsetWidth; on.classList.add("blur-in");
+  // ===================== Evolução: roda de equilíbrio =====================
+  const ICONS = {
+    idiomas: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    saude: '<path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="6"/>',
+    foco: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+    mente: '<path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V6a3 3 0 0 0-3-3zM15 3a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+    lazer: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/>',
+    relacoes: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    proposito: '<path d="M12 21v-8M12 13c0-4 3-6 7-6 0 4-3 6-7 6zM12 15c0-3-2.5-5-6-5 0 3 2.5 5 6 5z"/>',
+  };
+  const AREAS = [
+    { id: "saude", name: "Saúde e Corpo", short: "Saúde", c: ["#1fd97c", "#0e8a52"], prompt: "Me sugira um exercício rápido de 10 minutos para fazer agora e me acompanhe." },
+    { id: "relacoes", name: "Relações", short: "Relações", c: ["#ff4d6d", "#a3122f"], prompt: "Me dê uma ideia simples para fortalecer uma relação importante hoje." },
+    { id: "idiomas", name: "Idiomas", short: "Idiomas", c: ["#4f8bff", "#1d3fb8"], prompt: "Vamos praticar espanhol. Fale comigo em espanhol simples e corrija meus erros." },
+    { id: "mente", name: "Aprendizado", short: "Aprendizado", c: ["#b06bff", "#5b23c9"], prompt: "Me ensine algo interessante em 2 minutos e depois me faça uma pergunta." },
+    { id: "lazer", name: "Lazer e Diversão", short: "Lazer", c: ["#ff9a3c", "#c25a0a"], prompt: "Me sugira algo divertido e diferente para fazer hoje." },
+    { id: "foco", name: "Foco e Trabalho", short: "Foco", c: ["#ffd23f", "#b88a00"], prompt: "Me guie numa sessão de foco de 5 minutos: me ajude a escolher uma tarefa e começar." },
+    { id: "proposito", name: "Propósito", short: "Propósito", c: ["#3ee6c4", "#118a74"], prompt: "Me faça uma pergunta para refletir sobre o que é importante para mim." },
+  ];
+  let period = store.get("yawe-period", 30);
+  function areaDays(id) {
+    if (id === "idiomas") {   // vem do curso de espanhol: 10 XP ≈ 1 minuto
+      const d = esData().days, out = {};
+      for (const k in d) out[k] = Math.max(1, Math.round(d[k] / 10) * 3);
+      return out;
+    }
+    return (store.get("yawe-areas", {})[id] || {});
+  }
+  function areaStats(id) {
+    const days = areaDays(id), now = new Date();
+    let active = 0, minutes = 0, sessions = 0, prev = 0;
+    for (let i = 0; i < period * 2; i++) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const v = days[dayKey(d)] || 0;
+      if (i < period) { if (v) { active++; sessions += Math.max(1, Math.round(v / 15)); } minutes += v; } else prev += v;
+    }
+    return { score: Math.min(10, (active / period) * 10 * 1.15), minutes, sessions, streak: streakOf(days), prev };
+  }
+  const fmtTime = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}h`;
+  // geometria da roda
+  const WC = 180, R_IN = 62, R_OUT = 150, GAP = 0.05;
+  const pol = (r, a) => [WC + r * Math.cos(a), WC + r * Math.sin(a)];
+  function sector(r0, r1, a0, a1) {
+    const [x0, y0] = pol(r1, a0), [x1, y1] = pol(r1, a1), [x2, y2] = pol(r0, a1), [x3, y3] = pol(r0, a0);
+    const big = a1 - a0 > Math.PI ? 1 : 0;
+    return `M${x0} ${y0} A${r1} ${r1} 0 ${big} 1 ${x1} ${y1} L${x2} ${y2} A${r0} ${r0} 0 ${big} 0 ${x3} ${y3} Z`;
+  }
+  let wheelAnim = 0;
+  function renderBalance(animate) {
+    const stats = AREAS.map((a) => ({ ...a, ...areaStats(a.id) }));
+    const total = stats.reduce((t, a) => t + a.minutes, 0) || 1;
+    const overall = stats.reduce((t, a) => t + a.score, 0) / stats.length;
+    $("periodText").textContent = `em ${period} dias`;
+    $("dockBadge").textContent = esData().learned.length;
+    // roda (SVG)
+    const n = stats.length, step = (Math.PI * 2) / n, start = -Math.PI / 2 - step / 2;
+    let defs = '<defs><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+    let bases = "", fills = "", labels = "", icons = "";
+    stats.forEach((a, i) => {
+      const a0 = start + i * step + GAP, a1 = start + (i + 1) * step - GAP, mid = (a0 + a1) / 2;
+      defs += `<radialGradient id="g_${a.id}" cx="${WC}" cy="${WC}" r="${R_OUT}" gradientUnits="userSpaceOnUse"><stop offset="0.4" stop-color="${a.c[1]}"/><stop offset="1" stop-color="${a.c[0]}"/></radialGradient>`;
+      defs += `<path id="arc_${a.id}" d="M${pol(R_OUT + 14, a0).join(" ")} A${R_OUT + 14} ${R_OUT + 14} 0 0 1 ${pol(R_OUT + 14, a1).join(" ")}"/>`;
+      defs += `<path id="arcb_${a.id}" d="M${pol(R_OUT + 24, a1).join(" ")} A${R_OUT + 24} ${R_OUT + 24} 0 0 0 ${pol(R_OUT + 24, a0).join(" ")}"/>`;
+      bases += `<path class="seg" data-area="${a.id}" d="${sector(R_IN + 4, R_OUT, a0, a1)}" fill="#1b1b1f" stroke="#1b1b1f" stroke-width="10" stroke-linejoin="round"/>`;
+      fills += `<path class="seg" data-area="${a.id}" data-target="${a.score}" d="" fill="url(#g_${a.id})" stroke="url(#g_${a.id})" stroke-width="10" stroke-linejoin="round" filter="url(#glow)"/>`;
+      const bottom = Math.sin(mid) > 0.2;   // nas fatias de baixo o texto vai pelo arco de dentro, para não ficar de cabeça para baixo
+      labels += `<text class="lbl"><textPath href="#${bottom ? "arcb_" : "arc_"}${a.id}" startOffset="50%" text-anchor="middle">${a.short}</textPath></text>`;
+      const [ix, iy] = pol((R_IN + R_OUT) / 2 + 12, mid);
+      icons += `<g transform="translate(${ix - 12} ${iy - 12})" fill="none" stroke="rgba(255,255,255,.72)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"><svg width="24" height="24" viewBox="0 0 24 24">${ICONS[a.id]}</svg></g>`;
+    });
+    defs += "</defs>";
+    // centro com partículas
+    let sparks = "";
+    for (let k = 0; k < 46; k++) {
+      const r = Math.sqrt(Math.random()) * (R_IN - 12), ang = Math.random() * Math.PI * 2, c = AREAS[k % n].c[0];
+      sparks += `<circle class="spark" cx="${WC + r * Math.cos(ang)}" cy="${WC + r * Math.sin(ang)}" r="${(Math.random() * 1.6 + 0.7).toFixed(1)}" fill="${c}" style="animation-delay:${(Math.random() * 2.6).toFixed(2)}s"/>`;
+    }
+    const ring = `<circle cx="${WC}" cy="${WC}" r="${R_IN - 2}" fill="#050506" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>`;
+    const score = `<text x="${WC - 4}" y="${WC + 11}" text-anchor="end" class="score">${overall.toFixed(1)}</text><text x="${WC - 1}" y="${WC + 11}" class="of">/10</text>`;
+    $("wheel").innerHTML = defs + bases + fills + icons + labels + ring + sparks + score;
+    // anima as fatias crescendo
+    const els = [...$("wheel").querySelectorAll("path[data-target]")];
+    const t0 = performance.now(), dur = animate && !reduceMotion ? 900 : 0, my = ++wheelAnim;
+    const tick = (now) => {
+      if (my !== wheelAnim) return;
+      const k = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - k, 3);
+      els.forEach((el, i) => {
+        const a0 = start + i * step + GAP, a1 = start + (i + 1) * step - GAP;
+        const v = Number(el.dataset.target) / 10;
+        const r1 = R_IN + 4 + Math.max(0.06, v) * (R_OUT - R_IN - 4) * e;
+        el.setAttribute("d", sector(R_IN + 4, r1, a0, a1));
+        el.style.opacity = v ? 1 : 0.35;
+      });
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    $("wheel").querySelectorAll(".seg").forEach((el) => el.addEventListener("click", () => openArea(el.dataset.area)));
+    $("balSub").textContent = overall >= 7 ? "✨ equilíbrio em dia ✨" : overall >= 3 ? "✨ planejamento ✨" : "✨ comece por uma área ✨";
+    // lista
+    const sorted = [...stats].sort((x, y) => y.minutes - x.minutes);
+    $("areas").innerHTML = sorted.map((a) => {
+      const pct = Math.round((a.minutes / total) * 100), up = a.minutes >= a.prev;
+      return `<button class="area tap" data-area="${a.id}">
+        <span class="area-ic" style="color:${a.c[0]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px ${a.c[0]})">${ICONS[a.id]}</svg></span>
+        <span class="grow"><h4>${a.name}</h4><span class="stats">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>${fmtTime(a.minutes)}</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 13 4 4L16 7M12 15l2 2 8-10"/></svg>${a.sessions}</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg>${a.streak}</span>
+        </span></span>
+        <span class="pct"><span class="tr ${up ? "up" : "down"}">${up ? "↗" : "↘"}</span>${a.minutes ? pct : 0}%</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      </button>`;
+    }).join("");
+    $("areas").querySelectorAll(".area").forEach((b) => b.addEventListener("click", () => blurTap(b, () => openArea(b.dataset.area))));
+  }
+  let sheetArea = null;
+  function openArea(id) {
+    if (id === "idiomas") { show("course"); return; }
+    const a = AREAS.find((x) => x.id === id); if (!a) return;
+    sheetArea = a;
+    const st = areaStats(id);
+    $("sheetIc").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${a.c[0]}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px ${a.c[0]})">${ICONS[id]}</svg>`;
+    $("sheetTitle").textContent = a.name;
+    $("sheetSub").textContent = `${st.score.toFixed(1)}/10 · ${fmtTime(st.minutes)} em ${period} dias · sequência ${st.streak}`;
+    const sh = $("areaSheet"); sh.classList.remove("hidden"); const inner = sh.querySelector(".sheet"); inner.style.animation = "none"; void inner.offsetWidth; inner.style.animation = "";
+  }
+  function closeArea() { $("areaSheet").classList.add("hidden"); }
+  $("areaSheet").addEventListener("click", (e) => { if (e.target.id === "areaSheet") closeArea(); });
+  document.querySelectorAll("[data-log]").forEach((b) => b.addEventListener("click", () => {
+    if (!sheetArea) return;
+    const all = store.get("yawe-areas", {}), days = all[sheetArea.id] || {};
+    days[today()] = (days[today()] || 0) + Number(b.dataset.log);
+    all[sheetArea.id] = days; store.set("yawe-areas", all);
+    closeArea(); renderBalance(true); toast(`${sheetArea.short}: +${b.dataset.log} min registrados`);
   }));
+  $("sheetPractice").addEventListener("click", () => { if (!sheetArea) return; const p = sheetArea.prompt; closeArea(); send(p); });
+  $("periodBtn").addEventListener("click", () => { period = period === 30 ? 7 : 30; store.set("yawe-period", period); renderBalance(true); });
+  $("dockFocus").addEventListener("click", () => openArea("foco"));
+  $("dockOrb").addEventListener("click", () => blurTap($("dockOrb"), () => { stack.length = 0; show("face", { push: false }); }));
+  $("shareBtn").addEventListener("click", async () => {
+    const overall = AREAS.reduce((t, a) => t + areaStats(a.id).score, 0) / AREAS.length;
+    const text = `Meu equilíbrio no ${assistantName}: ${overall.toFixed(1)}/10 nos últimos ${period} dias.`;
+    try { if (navigator.share) await navigator.share({ text }); else { await navigator.clipboard.writeText(text); toast("Copiado!"); } } catch {}
+  });
 
   // ===================== Histórico e Ajustes =====================
   function renderHistory() {
