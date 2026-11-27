@@ -105,6 +105,14 @@ public class MainActivity extends Activity {
 
         pendingAction = getIntent().getStringExtra(EXTRA_ACTION);
 
+        // App atualizado: apaga a cópia antiga das telas guardada pelo navegador interno
+        // (login, memória e progresso ficam guardados à parte e não são apagados).
+        int version = BuildConfig.VERSION_CODE;
+        if (prefs.getInt("cache_version", -1) != version) {
+            web.clearCache(true);
+            prefs.edit().putInt("cache_version", version).apply();
+        }
+
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
         } else {
