@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YAWE</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box;
+         font: 15px/1.5 system-ui, sans-serif; color: #262035;
+         background: radial-gradient(700px 400px at 80% -10%, #ece4fb, transparent 60%), #f5f2fb; }
+  .card { width: 100%; max-width: 360px; text-align: center; }
+  .orb { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 22px;
+         background: radial-gradient(circle at 35% 30%, #fff 0 8%, transparent 30%),
+                     conic-gradient(from 200deg, #9fb4ff, #c79bff, #ffb6e1, #a5c8ff, #9fb4ff);
+         box-shadow: 0 0 26px rgba(170,140,255,.6); }
+  h1 { font: 40px/1 Georgia, serif; margin: 0 0 8px; }
+  p { color: #5e5672; margin: 0 0 20px; }
+  input { width: 100%; box-sizing: border-box; padding: 14px 16px; border-radius: 16px; border: 1px solid #e6def4;
+          background: #fff; font: inherit; outline: none; margin-bottom: 12px; }
+  input:focus { border-color: #8e83c9; }
+  button { width: 100%; padding: 14px; border: 0; border-radius: 16px; font: inherit; font-weight: 600; color: #fff;
+           background: linear-gradient(135deg, #8f84d6, #b18ae8); }
+  small { display: block; color: #8a82a0; margin-top: 16px; }
+  .err { color: #d0456a; min-height: 22px; margin-top: 8px; font-size: 14px; }
+</style>
+</head>
+<body>
+  <form class="card" id="f">
+    <div class="orb"></div>
+    <h1>YAWE</h1>
+    <p>Cole o endereço do seu servidor YAWE para conectar.</p>
+    <input id="url" type="url" inputmode="url" autocapitalize="off" autocorrect="off"
+           placeholder="https://yawe-xxxx.onrender.com" required>
+    <button type="submit">Conectar</button>
+    <div class="err" id="err"></div>
+    <small>Dá para trocar depois, na tela de senha.</small>
+  </form>
+<script>
+  const input = document.getElementById("url");
+  try { input.value = window.YAWEAndroid.getServerUrl() || ""; } catch (e) {}
+  document.getElementById("f").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!/^(https?:\/\/)?[\w.-]+(:\d+)?(\/.*)?$/i.test(v)) {
+      document.getElementById("err").textContent = "Endereço inválido.";
+      return;
+    }
+    window.YAWEAndroid.saveServerUrl(v);
+  });
+</script>
+</body>
+</html>

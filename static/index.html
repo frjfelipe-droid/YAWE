@@ -83,6 +83,7 @@
     background: linear-gradient(135deg, #8f84d6, #b18ae8); box-shadow: 0 8px 22px rgba(140, 110, 220, .35);
   }
   .err { color: var(--danger); min-height: 22px; font-size: 14px; margin-top: 10px; }
+  .link { margin-top: 18px; color: var(--lilac-strong); font-size: 14px; text-decoration: underline; }
   @keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 0 26px rgba(170,140,255,.75); } }
 
   /* ---------- Menu ---------- */
@@ -199,6 +200,7 @@
     <input class="field" id="password" type="password" placeholder="Senha" autocomplete="current-password" required>
     <button class="primary" type="submit">Entrar</button>
     <div class="err" id="loginErr"></div>
+    <button type="button" class="link hidden" id="changeServer">Trocar endereço do servidor</button>
   </form>
 </section>
 
@@ -636,11 +638,27 @@
   // ================= Microfone =================
   // O navegador só libera o microfone em HTTPS ou no próprio PC (localhost).
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const canListen = !!Recognition && window.isSecureContext;
+  const androidApp = window.YAWEAndroid;          // existe só dentro do app Android
+  const canListen = !!androidApp || (!!Recognition && window.isSecureContext);
   let recognizer = null;
+
+  // App Android: usa o reconhecimento de voz nativo; o texto volta por aqui.
+  window.yaweOnSpeech = (text) => {
+    document.querySelectorAll("[data-mic]").forEach((b) => b.classList.remove("listening"));
+    if (text && text.trim()) send(text); else setState("idle");
+  };
+
   document.querySelectorAll("[data-mic]").forEach((btn) => btn.addEventListener("click", () => {
     unlockAudio();
     const ta = btn.closest("form").querySelector("textarea");
+    if (androidApp) {
+      player.pause();
+      show("being");
+      document.querySelectorAll("[data-mic]").forEach((b) => b.classList.add("listening"));
+      setState("listening");
+      androidApp.listen();
+      return;
+    }
     if (!canListen) {
       ta.focus();
       toast("Use o microfone do teclado do celular para ditar a mensagem.");
@@ -727,8 +745,16 @@
       body: JSON.stringify({ password: $("password").value }),
     }).catch(() => null);
     if (resp && resp.ok) { $("password").value = ""; start(); }
-    else $("loginErr").textContent = resp ? "Senha incorreta." : "Sem conexão com o servidor.";
+    else {
+      const data = resp ? await resp.json().catch(() => ({})) : {};
+      $("loginErr").textContent = resp ? (data.error || "Senha incorreta.") : "Sem conexão com o servidor.";
+    }
   });
+
+  if (window.YAWEAndroid) {
+    $("changeServer").classList.remove("hidden");
+    $("changeServer").addEventListener("click", () => window.YAWEAndroid.changeServer());
+  }
 
   function greeting() {
     const h = new Date().getHours();

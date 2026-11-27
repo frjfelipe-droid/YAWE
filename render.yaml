@@ -1,0 +1,31 @@
+# Configuração para publicar o YAWE no Render (render.com) — plano grátis.
+# No Render: New > Blueprint > escolha este repositório. Ele pede os valores marcados com "sync: false".
+services:
+  - type: web
+    name: yawe
+    runtime: python
+    plan: free
+    branch: ccr-97575aea-xw54hw
+    buildCommand: pip install -r requirements.txt
+    # 1 processo (a conversa fica na memória) com várias threads para respostas em tempo real.
+    startCommand: gunicorn "web:build()" --workers 1 --threads 8 --timeout 180 --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/status
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.1"
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: APP_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: ASSISTANT_NAME
+        value: YAWE
+      - key: AI_SYSTEM_PROMPT
+        sync: false

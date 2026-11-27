@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request, send_from_directory, session
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from yawe.ai_client import AIError, create_chat
 from yawe.config import ConfigError, Settings, load_settings
@@ -27,9 +28,19 @@ MAX_MESSAGE_CHARS = 8000
 
 def create_app(settings: Settings) -> Flask:
     app = Flask(__name__, static_folder=None)
-    # Chave que assina o cookie de login; muda a cada reinício (basta entrar de novo).
+    # Chave que assina o cookie de login. Sem APP_SECRET_KEY, muda a cada reinício (basta entrar de novo).
     app.secret_key = os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)
-    app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
+    on_internet = bool(os.getenv("RENDER") or os.getenv("APP_BEHIND_PROXY"))
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=on_internet,  # na internet o site é HTTPS
+        PERMANENT_SESSION_LIFETIME=60 * 60 * 24 * 30,  # fica logado por 30 dias
+    )
+    if on_internet:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    failed_logins: dict[str, list[float]] = {}
 
     voice = None
     if settings.elevenlabs_api_key:
@@ -84,12 +95,19 @@ def create_app(settings: Settings) -> Flask:
 
     @app.post("/api/login")
     def login():
+        ip = request.remote_addr or "?"
+        now = time.time()
+        recent = [t for t in failed_logins.get(ip, []) if now - t < 15 * 60]
+        if len(recent) >= 8:  # muitas tentativas erradas: bloqueia por 15 minutos
+            return jsonify(ok=False, error="Muitas tentativas. Tente de novo em 15 minutos."), 429
         password = str((request.get_json(silent=True) or {}).get("password", ""))
         if settings.app_password and hmac.compare_digest(password.encode(), settings.app_password.encode()):
+            failed_logins.pop(ip, None)
             session.clear()
             session["auth"] = True
             session.permanent = True
             return jsonify(ok=True)
+        failed_logins[ip] = recent + [now]
         time.sleep(1.5)  # dificulta adivinhar a senha por tentativa e erro
         return jsonify(ok=False, error="Senha incorreta."), 401
 
@@ -165,6 +183,15 @@ def create_app(settings: Settings) -> Flask:
         return Response(audio, mimetype="audio/mpeg", headers={"Cache-Control": "no-store"})
 
     return app
+
+
+def build() -> Flask:
+    """Ponto de entrada para servidores na internet (ex.: gunicorn "web:build()")."""
+    settings = load_settings()
+    if not settings.app_password:
+        raise ConfigError("Defina a variável APP_PASSWORD (senha do app) antes de publicar.")
+    print(f"{settings.assistant_name} no ar (modelo: {settings.model}, voz: {bool(settings.elevenlabs_api_key)})")
+    return create_app(settings)
 
 
 def local_ip() -> str:
