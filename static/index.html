@@ -573,7 +573,7 @@
   const palette = MOODS[moodName].c.map(hex);           // cores atuais (interpoladas)
   function setMood(name) {
     if (!MOODS[name]) return;
-    moodName = name; applyMoodGlow(); renderStatus();
+    moodName = name; applyMoodGlow(); renderStatus(); pushWidget();
   }
   function applyMoodGlow() { if (current === "face" || current === "login" || !current) setGlow(...MOODS[moodName].glow); }
   const MOOD_RE = /^\s*\[\s*humor\s*:\s*([a-zçãéô]+)[^\]]*\]\s*/i;
@@ -776,7 +776,7 @@
       aiEl.remove(); if (history.at(-1)?.role === "user") history.pop();
       caption("error", err.message || "Sem conexão com o servidor.");
     } finally { busy = false; $("sendBtn").disabled = false; }
-    if (ok) { speak(full); maybeRemember(); } else setState("idle");
+    if (ok) { speak(full); maybeRemember(); pushWidget(full); } else setState("idle");
   }
 
   // ===================== Vida: ele fala primeiro =====================
@@ -818,9 +818,30 @@
       const d = await resp.json();
       memory = { nome: d.nome || "", fatos: Array.isArray(d.fatos) ? d.fatos : [] };
       store.set("yawe-memory", memory);
-      renderGreeting();
+      renderGreeting(); pushWidget();
     } catch {}
   }
+
+  // ===================== Widget da tela inicial (app Android) =====================
+  let widgetLine = store.get("yawe-widget-line", "");
+  function pushWidget(line) {
+    if (!androidApp || typeof androidApp.updateWidget !== "function") return;
+    if (line) { widgetLine = line.replace(/\s+/g, " ").trim().slice(0, 140); store.set("yawe-widget-line", widgetLine); }
+    const s = esData();
+    try {
+      androidApp.updateWidget(JSON.stringify({ name: memory.nome || "", mood: moodName, line: widgetLine,
+        streak: streakOf(s.days), todayXp: s.days[today()] || 0, goal: GOAL }));
+    } catch {}
+  }
+  // Ações vindas do widget: "listen" (falar), "course" (espanhol), "open"
+  function takeAction() { try { return androidApp && androidApp.takeAction ? androidApp.takeAction() : null; } catch { return null; } }
+  function runAction(action) {
+    if (!action || current === "login") return false;
+    if (action === "listen") { stack.length = 0; if (current !== "face") show("face", { push: false }); setTimeout(() => $("micBtn").click(), 350); return true; }
+    if (action === "course") { stack.length = 0; show("face", { push: false }); show("course"); return true; }
+    return false;
+  }
+  window.yaweAction = () => runAction(takeAction());
 
   // ===================== Escuta: palavra de ativação =====================
   const nativeWake = !!androidApp && typeof androidApp.startWake === "function";
@@ -974,6 +995,7 @@
     if (ok) { s.right++; s.xp += XP_RIGHT; lesson.xp += XP_RIGHT; lesson.right++; s.days[today()] = (s.days[today()] || 0) + XP_RIGHT; if (!s.learned.includes(q.id)) s.learned.push(q.id); btn.classList.add("right"); }
     else { btn.classList.add("wrong"); $("qWrap").querySelector(`[data-opt="${q.id}"]`).classList.add("right"); }
     store.set("yawe-es", s);
+    pushWidget();
     $("lessonXp").textContent = "+" + lesson.xp + " XP";
     $("nextBtn").textContent = lesson.i + 1 < LESSON_LEN ? "Continuar" : "Ver resultado"; $("nextBtn").classList.remove("hidden");
   }
@@ -1018,7 +1040,7 @@
   $("wakeRow").addEventListener("click", () => setWake(!ears.enabled));
   $("voiceRow").addEventListener("click", () => { if (!voiceAvailable) return toast("Voz indisponível: falta a chave da ElevenLabs."); voiceOn = !voiceOn; store.set("yawe-voice-on", voiceOn); if (!voiceOn) player.pause(); renderSettings(); });
   $("greetRow").addEventListener("click", () => { greetOn = !greetOn; store.set("yawe-greet-on", greetOn); renderSettings(); });
-  $("forgetRow").addEventListener("click", () => { if (!confirm("Apagar tudo o que " + assistantName + " lembra sobre você?")) return; memory = { nome: "", fatos: [] }; store.set("yawe-memory", memory); renderSettings(); renderGreeting(); toast("Memória apagada."); });
+  $("forgetRow").addEventListener("click", () => { if (!confirm("Apagar tudo o que " + assistantName + " lembra sobre você?")) return; memory = { nome: "", fatos: [] }; store.set("yawe-memory", memory); renderSettings(); renderGreeting(); pushWidget(); toast("Memória apagada."); });
   $("newChat").addEventListener("click", async () => { if (busy) return; player.pause(); await fetch("/api/reset", { method: "POST" }); history.length = 0; captions.innerHTML = ""; renderHistory(); toast("Nova conversa iniciada"); });
   if (androidApp) {
     $("changeServer").classList.remove("hidden"); $("changeServer").addEventListener("click", () => androidApp.changeServer());
@@ -1045,6 +1067,9 @@
       $("modelInfo").textContent = st.model ? "modelo · " + st.model : "";
       renderGreeting(); setState("idle");
       stack.length = 0; show("face", { push: false });
+      pushWidget();
+      const action = takeAction();
+      if (runAction(action)) { greetedThisLoad = true; markSeen(); return; }   // veio do widget: vai direto ao ponto
       if (!greetedThisLoad) { greetedThisLoad = true; greet("open"); markSeen(); }
     } catch {
       document.body.innerHTML = '<p style="padding:24px;color:#aaa;font-family:sans-serif">Não foi possível conectar ao servidor.</p>';

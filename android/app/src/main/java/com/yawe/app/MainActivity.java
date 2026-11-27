@@ -36,6 +36,7 @@ import java.util.ArrayList;
  */
 public class MainActivity extends Activity {
 
+    static final String EXTRA_ACTION = "yawe_action";
     private static final String PREFS = "yawe";
     private static final String KEY_URL = "server_url";
     private static final int REQ_SPEECH = 42;
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
     private boolean wantListening = false;
     private boolean listening = false;
     private int statusBarPx = 0;
+    private String pendingAction = null; // ação vinda do widget (falar, abrir curso)
 
     private int statusBarDp() {
         return Math.round(statusBarPx / getResources().getDisplayMetrics().density);
@@ -100,6 +102,8 @@ public class MainActivity extends Activity {
 
         web.addJavascriptInterface(new Bridge(), "YAWEAndroid");
         web.setWebViewClient(new Client());
+
+        pendingAction = getIntent().getStringExtra(EXTRA_ACTION);
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
@@ -179,6 +183,32 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void retry() {
             runOnUiThread(MainActivity.this::openStart);
+        }
+
+        /** Devolve (e limpa) a ação pedida pelo widget: "listen", "course" ou "open". */
+        @JavascriptInterface
+        public String takeAction() {
+            String a = pendingAction;
+            pendingAction = null;
+            return a;
+        }
+
+        /** A página envia o estado atual (nome, humor, sequência...) para o widget da tela inicial. */
+        @JavascriptInterface
+        public void updateWidget(String json) {
+            try {
+                JSONObject o = new JSONObject(json);
+                getSharedPreferences(YaweWidget.PREFS, MODE_PRIVATE).edit()
+                        .putString("name", o.optString("name", ""))
+                        .putString("mood", o.optString("mood", ""))
+                        .putString("line", o.optString("line", ""))
+                        .putInt("streak", o.optInt("streak", 0))
+                        .putInt("todayXp", o.optInt("todayXp", 0))
+                        .putInt("goal", o.optInt("goal", 30))
+                        .apply();
+                YaweWidget.refresh(MainActivity.this);
+            } catch (Exception ignored) {
+            }
         }
 
         @JavascriptInterface
@@ -341,6 +371,17 @@ public class MainActivity extends Activity {
                     || error == SpeechRecognizer.ERROR_SERVER;
             long delay = error == SpeechRecognizer.ERROR_NETWORK ? 2000 : 300;
             restartLater(delay, recreate);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String action = intent.getStringExtra(EXTRA_ACTION);
+        if (action != null) {
+            pendingAction = action;
+            js("window.yaweAction && window.yaweAction()");
         }
     }
 
