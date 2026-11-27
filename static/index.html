@@ -1085,7 +1085,7 @@
       document.querySelectorAll(".app-name").forEach((el) => (el.textContent = assistantName));
       if (!st.logged_in) { show("login", { push: false }); return; }
       voiceAvailable = st.voice;
-      $("modelInfo").textContent = st.model ? "modelo · " + st.model : "";
+      $("modelInfo").textContent = (st.model ? "modelo · " + st.model : "") + (st.version ? "  ·  versão " + st.version : "");
       renderGreeting(); setState("idle");
       stack.length = 0; show("face", { push: false });
       pushWidget();

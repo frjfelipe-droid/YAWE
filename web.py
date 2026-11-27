@@ -107,7 +107,9 @@ def create_app(settings: Settings) -> Flask:
 
     @app.get("/")
     def index():
-        return send_from_directory(STATIC_DIR, "index.html")
+        resp = send_from_directory(STATIC_DIR, "index.html")
+        resp.headers["Cache-Control"] = "no-store"   # o celular sempre pega a versão mais nova da tela
+        return resp
 
     @app.get("/static/<path:name>")
     def static_files(name: str):
@@ -122,6 +124,7 @@ def create_app(settings: Settings) -> Flask:
     @app.get("/api/status")
     def status():
         return jsonify(
+            version=(os.getenv("RENDER_GIT_COMMIT") or "local")[:7],
             logged_in=logged_in(),
             name=settings.assistant_name,
             model=settings.model if logged_in() else None,
