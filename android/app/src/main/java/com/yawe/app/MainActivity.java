@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#F5F2FB"));
+        web.setBackgroundColor(Color.parseColor("#0A0A0C"));
         setContentView(web);
 
         WebSettings s = web.getSettings();

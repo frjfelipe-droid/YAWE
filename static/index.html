@@ -3,605 +3,717 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#f5f2fb">
+<meta name="theme-color" content="#0a0a0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>YAWE</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/static/icon-192.png">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Menu (claro) */
-    --bg: #f5f2fb;
-    --bg-2: #efe9f9;
-    --card: #ffffff;
-    --ink: #262035;
-    --ink-soft: #5e5672;
-    --lilac: #8e83c9;
-    --lilac-strong: #6f61b8;
-    --line: #e6def4;
-    --shadow: 0 10px 30px rgba(110, 90, 170, .12), 0 2px 6px rgba(110, 90, 170, .06);
-    /* Tela do ser (escura) */
-    --void: #07040d;
-    --void-2: #160c2a;
-    --glow: #b48cff;
-    --caption: #efe7ff;
-    --caption-soft: #a99cc9;
-    --danger: #e0567a;
-    --serif: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
+    --bg: #0a0a0c;
+    --card: #161619;
+    --card-2: #1d1d21;
+    --line: #26262c;
+    --text: #f3f3f5;
+    --muted: #8e8e96;
+    --faint: #5c5c66;
+    --orange: #ff9f43;
+    --orange-2: #ff7a2f;
+    --violet: #8b5cf6;
+    --violet-2: #a855f7;
+    --pink: #ff2cdf;
+    --blue: #0014ff;
+    --cyan: #00e1fd;
+    --rose: #fc007a;
+    --green: #00ff5b;
+    --danger: #ff5c7a;
+    --radius: 26px;
     --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --nav-h: 76px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; }
   body {
-    font: 15px/1.5 var(--sans); color: var(--ink);
-    background: radial-gradient(900px 500px at 80% -10%, #ece4fb 0%, transparent 60%),
-                radial-gradient(700px 500px at -10% 110%, #efe6fb 0%, transparent 55%), var(--bg);
+    background: var(--bg); color: var(--text);
+    font: 15px/1.45 var(--sans); -webkit-font-smoothing: antialiased;
     height: 100dvh; overflow: hidden;
   }
-  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
   .hidden { display: none !important; }
   .screen { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
-  /* ---------- Botões e pílulas ---------- */
-  .pill {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 14px 8px 8px; border-radius: 999px;
-    background: rgba(255,255,255,.8); box-shadow: var(--shadow); font-size: 13px; color: var(--ink-soft);
+  /* ---------------- Barra superior ---------------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: calc(12px + env(safe-area-inset-top)) 20px 8px;
   }
-  .dot-orb {
-    width: 26px; height: 26px; border-radius: 50%; flex: none;
-    background: radial-gradient(circle at 35% 30%, #fff 0 8%, transparent 30%),
-                conic-gradient(from 200deg, #9fb4ff, #c79bff, #ffb6e1, #a5c8ff, #9fb4ff);
-    filter: saturate(1.1); box-shadow: 0 0 12px rgba(170, 140, 255, .55);
+  .topbar h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .01em; }
+  .icon-btn {
+    width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+    background: var(--card); border: 1px solid var(--line); color: var(--text); flex: none;
   }
-  .round {
-    width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
-    background: rgba(255,255,255,.85); box-shadow: var(--shadow); color: var(--ink-soft); flex: none;
-  }
-  .round svg { width: 18px; height: 18px; }
-  .round.off { opacity: .45; }
+  .icon-btn svg { width: 20px; height: 20px; }
 
-  /* ---------- Login ---------- */
+  /* ---------------- Login ---------------- */
   #login { align-items: center; justify-content: center; padding: 24px; }
   .login-card { width: 100%; max-width: 340px; text-align: center; }
-  .login-card .dot-orb { width: 74px; height: 74px; margin: 0 auto 22px; animation: breathe 4s ease-in-out infinite; }
-  .login-card h1 { font: 44px/1 var(--serif); margin: 0 0 8px; color: var(--ink); }
-  .login-card p { color: var(--ink-soft); margin: 0 0 22px; }
+  .login-card canvas { width: 180px; height: 180px; display: block; margin: 0 auto 10px; }
+  .login-card h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; letter-spacing: .04em; }
+  .login-card p { color: var(--muted); margin: 0 0 22px; }
   .field {
-    width: 100%; padding: 14px 18px; border-radius: 18px; border: 1px solid var(--line);
-    background: var(--card); font: inherit; color: var(--ink); outline: none; box-shadow: var(--shadow); margin-bottom: 12px;
+    width: 100%; padding: 15px 18px; border-radius: 18px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); font: inherit; outline: none; margin-bottom: 12px;
   }
-  .field:focus { border-color: var(--lilac); }
-  .primary {
-    width: 100%; padding: 14px; border-radius: 18px; font-weight: 600; color: #fff;
-    background: linear-gradient(135deg, #8f84d6, #b18ae8); box-shadow: 0 8px 22px rgba(140, 110, 220, .35);
+  .field:focus { border-color: var(--violet); }
+  .btn-primary {
+    width: 100%; padding: 15px; border-radius: 18px; font-weight: 600; color: #fff;
+    background: linear-gradient(135deg, var(--violet-2), #5b3df5);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, .35);
   }
   .err { color: var(--danger); min-height: 22px; font-size: 14px; margin-top: 10px; }
-  .link { margin-top: 18px; color: var(--lilac-strong); font-size: 14px; text-decoration: underline; }
-  @keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 0 26px rgba(170,140,255,.75); } }
+  .link { margin-top: 16px; color: var(--muted); font-size: 13px; text-decoration: underline; }
 
-  /* ---------- Menu ---------- */
-  #home { padding: calc(14px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom)); }
-  .topbar { display: flex; align-items: center; gap: 10px; }
-  .topbar .spacer { flex: 1; }
-  .monogram { margin: 34px 0 18px; font: italic 40px/1 var(--serif); color: #b9afdc; letter-spacing: -.02em; }
-  .hero { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  .hero h2 { margin: 0; font: 46px/1.02 var(--serif); letter-spacing: -.01em; }
-  .hero h2 .soft { color: var(--lilac); display: block; }
-  .hero p { color: var(--ink-soft); margin: 16px 0 0; max-width: 300px; }
-  .chips { display: flex; gap: 12px; overflow-x: auto; margin: auto -20px 18px; padding: 24px 20px 6px; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip {
-    flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px 12px 12px;
-    border-radius: 18px; background: rgba(255,255,255,.75); box-shadow: var(--shadow);
-    text-align: left; font-size: 13.5px; line-height: 1.25; color: var(--ink);
-  }
-  .chip i {
-    width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-style: normal;
-    background: var(--bg-2); color: var(--lilac-strong);
-  }
-  .chip i svg { width: 18px; height: 18px; }
+  /* ---------------- Abas (Início, Histórico, Ajustes) ---------------- */
+  #app { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+  .tab { flex: 1; overflow-y: auto; padding: 4px 16px 24px; scrollbar-width: none; }
+  .tab::-webkit-scrollbar { display: none; }
+  .tab .topbar { padding-left: 6px; padding-right: 6px; }
 
-  /* Barra "toque para falar ou digite" */
-  .composer {
-    display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 8px;
-    border-radius: 999px; background: rgba(255,255,255,.92); box-shadow: var(--shadow);
+  .greet { padding: 10px 6px 18px; display: flex; align-items: center; gap: 14px; }
+  .greet canvas { width: 64px; height: 64px; flex: none; }
+  .greet small { display: block; color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+  .greet h2 { margin: 2px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px; position: relative; overflow: hidden; min-width: 0; text-align: left;
+  }
+  .card.wide { grid-column: span 2; }
+  .card-title { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .card-title .chev { color: var(--faint); width: 18px; height: 18px; }
+  .label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+
+  /* Relógio */
+  .clock { background: linear-gradient(160deg, #ffb057, var(--orange-2)); border: 0; color: #1b0f02; }
+  .clock .time { font-size: 44px; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin: 6px 0 12px; }
+  .clock .label { color: rgba(27, 15, 2, .65); }
+  .clock .day { font-weight: 600; font-size: 14px; }
+
+  /* Calendário */
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 10.5px; }
+  .cal span { padding: 3px 0; color: var(--muted); border-radius: 50%; }
+  .cal .dow { color: var(--faint); font-family: var(--mono); font-size: 9.5px; }
+  .cal .today { color: var(--orange); box-shadow: inset 0 0 0 1.5px var(--orange); font-weight: 700; }
+  .cal .past { color: var(--faint); }
+
+  /* Números e barras */
+  .big-num { font-size: 34px; font-weight: 600; letter-spacing: -.02em; display: flex; align-items: baseline; gap: 4px; }
+  .big-num small { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .bar { height: 10px; border-radius: 99px; background: var(--card-2); margin-top: 12px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--cyan), var(--green)); width: 0; transition: width .6s; }
+  .segs { display: flex; gap: 6px; margin-top: 14px; }
+  .segs i { flex: 1; height: 22px; border-radius: 8px; background: var(--card-2); }
+  .segs i.on { background: linear-gradient(90deg, #ffd27a, var(--orange)); }
+
+  /* Sugestões */
+  .sugg { display: flex; flex-direction: column; }
+  .sugg button {
+    display: flex; align-items: center; gap: 12px; padding: 12px 2px; text-align: left;
+    border-top: 1px solid var(--line); font-size: 14.5px;
+  }
+  .sugg button:first-child { border-top: 0; }
+  .sugg .dot { width: 30px; height: 30px; border-radius: 10px; flex: none; }
+  .sugg .grow { flex: 1; }
+  .sugg svg { width: 16px; height: 16px; color: var(--faint); }
+  .g1 { background: linear-gradient(135deg, var(--pink), var(--blue)); }
+  .g2 { background: linear-gradient(135deg, var(--cyan), var(--rose)); }
+  .g3 { background: linear-gradient(135deg, #ffe53b, #ff2525); }
+  .g4 { background: linear-gradient(135deg, var(--green), var(--blue)); }
+
+  .last { font-size: 14.5px; color: #d6d6dc; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .last.empty { color: var(--faint); }
+
+  /* Histórico */
+  .hist { display: flex; flex-direction: column; gap: 10px; padding: 6px 2px; }
+  .hist .m { max-width: 86%; padding: 11px 15px; border-radius: 20px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; }
+  .hist .m.user { align-self: flex-end; background: linear-gradient(135deg, #6d4af2, #8b5cf6); border-bottom-right-radius: 6px; }
+  .hist .m.ai { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+  .empty-state { color: var(--faint); text-align: center; padding: 50px 20px; }
+
+  /* Ajustes */
+  .row { display: flex; align-items: center; gap: 14px; padding: 15px 16px; border-top: 1px solid var(--line); width: 100%; text-align: left; }
+  .row:first-child { border-top: 0; }
+  .row .grow { flex: 1; }
+  .row small { display: block; color: var(--muted); font-size: 12.5px; }
+  .row .ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--card-2); flex: none; }
+  .row .ic svg { width: 18px; height: 18px; }
+  .row.danger { color: var(--danger); }
+  .switch { width: 50px; height: 30px; border-radius: 99px; background: var(--card-2); position: relative; flex: none; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .switch.on { background: linear-gradient(90deg, var(--pink), var(--violet)); }
+  .switch.on::after { transform: translateX(20px); }
+
+  /* ---------------- Barra inferior ---------------- */
+  nav.bottom {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+    display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+    background: rgba(10, 10, 12, .92); backdrop-filter: blur(14px); border-top: 1px solid var(--line);
+  }
+  nav.bottom button { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--faint); }
+  nav.bottom button.active { color: var(--text); }
+  nav.bottom svg { width: 23px; height: 23px; }
+  .talk-btn {
+    width: 64px; height: 44px; border-radius: 22px; margin: 0 auto; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(135deg, #b46cff, #6a3df5);
+    box-shadow: 0 0 22px rgba(160, 100, 255, .65), inset 0 -3px 0 rgba(255, 80, 120, .55);
+  }
+  nav.bottom .talk-btn svg { width: 22px; height: 22px; color: #fff; }
+
+  /* ---------------- Tela de conversa ---------------- */
+  #talk { background: radial-gradient(90% 55% at 50% 40%, #12121a 0%, var(--bg) 70%); }
+  #talk .topbar { position: relative; z-index: 2; }
+  .stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  #talkCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .orbit-pill {
+    position: absolute; left: 0; top: 0; padding: 8px 14px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,.55); background: rgba(10,10,12,.55);
+    font-family: var(--mono); font-size: 12px; color: #e9e9ee; white-space: nowrap;
+    box-shadow: 0 0 12px rgba(255,255,255,.12), inset 0 0 8px rgba(255,255,255,.06);
+    transition: opacity .4s; will-change: transform;
+  }
+  .stage.chatting .orbit-pill { opacity: 0; pointer-events: none; }
+  .state-label {
+    position: absolute; left: 0; right: 0; text-align: center; font-family: var(--mono); font-size: 12px;
+    color: var(--muted); letter-spacing: .08em; text-transform: uppercase; pointer-events: none;
+  }
+  .captions { max-height: 30vh; overflow-y: auto; padding: 0 22px; margin-bottom: 10px; text-align: center; scrollbar-width: none; }
+  .captions::-webkit-scrollbar { display: none; }
+  .captions .you { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .captions .ai { font-size: 17px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: #ececf1; }
+  .captions .note { color: var(--muted); font-size: 12.5px; margin-top: 8px; font-family: var(--mono); }
+  .captions .error { color: var(--danger); font-size: 14px; margin-top: 8px; }
+
+  .composer { display: flex; align-items: flex-end; gap: 10px; padding: 8px 16px calc(14px + env(safe-area-inset-bottom)); }
+  .composer .box {
+    flex: 1; display: flex; align-items: flex-end; gap: 6px; padding: 6px 6px 6px 16px;
+    border-radius: 20px; border: 1px solid var(--line); background: var(--card);
   }
   .composer textarea {
-    flex: 1; border: 0; outline: none; resize: none; background: transparent; font: inherit; color: var(--ink);
-    padding: 10px 4px; max-height: 110px; min-height: 24px; line-height: 1.4;
+    flex: 1; border: 0; outline: none; resize: none; background: transparent; color: var(--text);
+    font: 14px/1.4 var(--mono); padding: 9px 0; max-height: 110px; min-height: 22px;
   }
-  .composer textarea::placeholder { color: #9a92ad; }
-  .mic {
-    width: 46px; height: 46px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff;
-    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.9) 0 6%, transparent 32%),
-                conic-gradient(from 200deg, #8fa6ff, #b98cff, #ff9fd4, #8fc0ff, #8fa6ff);
-    box-shadow: 0 0 18px rgba(160, 130, 255, .55);
-  }
-  .mic svg { width: 20px; height: 20px; filter: drop-shadow(0 1px 2px rgba(60, 30, 120, .4)); }
-  .mic.listening { animation: breathe 1s ease-in-out infinite; }
-  .send { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--lilac-strong); flex: none; }
-  .send svg { width: 20px; height: 20px; }
-  .send:disabled { opacity: .35; }
-
-  /* ---------- Tela do ser (YAWE) ---------- */
-  #being {
-    background: radial-gradient(120% 70% at 50% 38%, var(--void-2) 0%, var(--void) 62%);
-    color: var(--caption);
-    padding: calc(14px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom));
-  }
-  #being .topbar .pill { background: rgba(255,255,255,.08); color: var(--caption-soft); box-shadow: none; padding: 9px 16px; }
-  #being .topbar .pill svg { width: 14px; height: 14px; }
-  #being .round { background: rgba(255,255,255,.08); color: var(--caption-soft); box-shadow: none; }
-  .stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
-  #orbCanvas { width: 100%; flex: 1; min-height: 220px; display: block; }
-  .state-label {
-    font: italic 30px/1.1 var(--serif); color: #cdb8ff; text-align: center; margin: -6px 0 10px;
-    text-shadow: 0 0 18px rgba(170, 120, 255, .45); min-height: 34px; transition: opacity .3s;
-  }
-  .captions {
-    width: 100%; max-width: 560px; max-height: 32vh; overflow-y: auto; text-align: center;
-    padding: 0 8px; margin-bottom: 14px; scrollbar-width: none;
-  }
-  .captions::-webkit-scrollbar { display: none; }
-  .captions .you { color: var(--caption-soft); font-size: 13.5px; margin-bottom: 8px; }
-  .captions .ai { font-size: 17px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .captions .note { color: var(--caption-soft); font-size: 13px; margin-top: 8px; }
-  .captions .error { color: #ff8fb0; font-size: 14px; margin-top: 8px; }
-  #being .composer { background: rgba(255,255,255,.08); box-shadow: none; border: 1px solid rgba(190, 160, 255, .18); }
-  #being .composer textarea { color: var(--caption); }
-  #being .composer textarea::placeholder { color: #8a7fa8; }
-  #being .send { color: #cdb8ff; }
-
-  /* ---------- Histórico ---------- */
-  .sheet {
-    position: fixed; inset: 0; z-index: 10; background: rgba(7, 4, 13, .55); display: flex; align-items: flex-end;
-  }
-  .sheet-body {
-    width: 100%; max-height: 80dvh; overflow-y: auto; background: var(--bg); color: var(--ink);
-    border-radius: 26px 26px 0 0; padding: 18px 18px calc(22px + env(safe-area-inset-bottom));
-  }
-  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .sheet-head h3 { margin: 0; font: 30px/1 var(--serif); }
-  .hist { display: flex; flex-direction: column; gap: 10px; }
-  .hist .m { max-width: 86%; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .hist .m.user { align-self: flex-end; background: #e3dbf6; border-bottom-right-radius: 6px; }
-  .hist .m.ai { align-self: flex-start; background: var(--card); box-shadow: var(--shadow); border-bottom-left-radius: 6px; }
-  .hist .empty { color: var(--ink-soft); text-align: center; padding: 20px 0; }
+  .composer textarea::placeholder { color: var(--faint); }
+  .mic-btn { width: 38px; height: 38px; border-radius: 14px; display: grid; place-items: center; color: var(--muted); flex: none; }
+  .mic-btn svg { width: 20px; height: 20px; }
+  .mic-btn.listening { color: #fff; background: linear-gradient(135deg, var(--rose), var(--violet)); }
+  .send-btn { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; background: #f3f3f5; color: #0a0a0c; flex: none; }
+  .send-btn svg { width: 22px; height: 22px; }
+  .send-btn:disabled { opacity: .35; }
 
   .toast {
-    position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%);
-    background: rgba(38, 32, 53, .92); color: #fff; padding: 10px 16px; border-radius: 14px; font-size: 13.5px;
-    max-width: calc(100% - 40px); text-align: center; z-index: 20;
+    position: fixed; left: 50%; bottom: calc(var(--nav-h) + 18px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: #26262c; color: #fff; padding: 10px 16px; border-radius: 14px; font-size: 13.5px;
+    max-width: calc(100% - 40px); text-align: center; z-index: 30; border: 1px solid #33333a;
   }
-
-  @media (min-width: 720px) {
-    #home { max-width: 520px; margin: 0 auto; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .login-card .dot-orb, .mic.listening { animation: none; }
-  }
+  @media (min-width: 720px) { #app .tab, #talk .captions { max-width: 560px; margin-left: auto; margin-right: auto; width: 100%; } }
 </style>
 </head>
 <body>
 
-<!-- ============ Login ============ -->
+<!-- ================= Login ================= -->
 <section id="login" class="screen hidden">
   <form class="login-card" id="loginForm">
-    <div class="dot-orb"></div>
+    <canvas id="loginCanvas" aria-hidden="true"></canvas>
     <h1 class="app-name">YAWE</h1>
-    <p>Digite a senha para despertar o assistente.</p>
+    <p>Digite sua senha para começar.</p>
     <input class="field" id="password" type="password" placeholder="Senha" autocomplete="current-password" required>
-    <button class="primary" type="submit">Entrar</button>
+    <button class="btn-primary" type="submit">Entrar</button>
     <div class="err" id="loginErr"></div>
     <button type="button" class="link hidden" id="changeServer">Trocar endereço do servidor</button>
   </form>
 </section>
 
-<!-- ============ Menu ============ -->
-<section id="home" class="screen hidden">
-  <div class="topbar">
-    <button class="pill" id="openBeing"><span class="dot-orb"></span><span><span class="app-name">YAWE</span> · <span id="statusText">online</span></span></button>
-    <span class="spacer"></span>
-    <button class="round" id="voiceBtn" title="Voz ligada/desligada" aria-label="Ligar ou desligar a voz">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-    </button>
-    <button class="round" id="logoutBtn" title="Sair" aria-label="Sair">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-    </button>
-  </div>
+<!-- ================= App (abas) ================= -->
+<section id="app" class="screen hidden">
+  <!-- Início -->
+  <div class="tab" id="tab-home">
+    <div class="topbar">
+      <h1 class="app-name">YAWE</h1>
+      <span class="label" id="statusText">online</span>
+    </div>
+    <div class="greet">
+      <canvas id="homeCanvas" aria-hidden="true"></canvas>
+      <div><small id="greetSmall">Boa noite</small><h2>Como posso ajudar?</h2></div>
+    </div>
 
-  <div class="hero">
-    <div class="monogram" id="monogram">Y</div>
-    <h2><span class="soft" id="greeting">Olá, senhor</span>Como posso ajudar hoje?</h2>
-    <p>Converse por voz ou por texto. Eu lembro do que falamos nesta conversa.</p>
+    <div class="grid">
+      <div class="card clock">
+        <div class="label" id="clockWeek">—</div>
+        <div class="time" id="clockTime">--:--</div>
+        <div class="day" id="clockDate"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span id="calMonth">Mês</span></div>
+        <div class="cal" id="cal"></div>
+      </div>
 
-    <div class="chips">
-      <button class="chip" data-prompt="Me dê um resumo de ideias para organizar o meu dia.">
-        <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 11v2"/></svg></i>Organizar<br>meu dia
+      <div class="card" id="batteryCard">
+        <div class="card-title">Bateria</div>
+        <div class="big-num"><span id="batteryNum">--</span><small>%</small></div>
+        <div class="bar"><i id="batteryBar"></i></div>
+        <div class="label" style="margin-top:8px" id="batteryState">—</div>
+      </div>
+      <div class="card" id="convCard">
+        <div class="card-title">Conversa</div>
+        <div class="big-num"><span id="msgCount">0</span><small>msgs</small></div>
+        <div class="segs" id="msgSegs"><i></i><i></i><i></i><i></i></div>
+      </div>
+
+      <button class="card wide" id="lastCard">
+        <div class="card-title">Última resposta
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+        </div>
+        <div class="last empty" id="lastText"></div>
       </button>
-      <button class="chip" data-prompt="Me conte uma curiosidade interessante.">
-        <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18.5 9l-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></i>Uma<br>curiosidade
-      </button>
-      <button class="chip" data-prompt="Quero ter uma ideia nova. Me faça perguntas para me ajudar a pensar.">
-        <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></i>Pensar<br>junto
-      </button>
-      <button class="chip" id="historyChip">
-        <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></i>Ver<br>conversa
-      </button>
-      <button class="chip" id="newChip">
-        <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i>Nova<br>conversa
-      </button>
+
+      <div class="card wide">
+        <div class="card-title">Sugestões</div>
+        <div class="sugg">
+          <button data-prompt="Me ajude a organizar o meu dia com prioridades claras."><span class="dot g1"></span><span class="grow">Organizar meu dia</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+          <button data-prompt="Me conte uma curiosidade interessante e pouco conhecida."><span class="dot g2"></span><span class="grow">Uma curiosidade</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+          <button data-prompt="Quero ter uma ideia nova. Faça perguntas para me ajudar a pensar."><span class="dot g3"></span><span class="grow">Pensar junto</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+          <button data-prompt="Me dê uma dica rápida para ter mais energia e foco hoje."><span class="dot g4"></span><span class="grow">Energia e foco</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <form class="composer" id="homeComposer">
-    <button type="button" class="mic" data-mic aria-label="Falar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
-    </button>
-    <textarea rows="1" placeholder="Toque para falar ou digite…" enterkeyhint="send"></textarea>
-    <button type="submit" class="send" aria-label="Enviar">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
-    </button>
-  </form>
-</section>
-
-<!-- ============ O ser (YAWE) ============ -->
-<section id="being" class="screen hidden">
-  <div class="topbar">
-    <button class="pill" id="closeBeing">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
-      Fechar
-    </button>
-    <span class="spacer"></span>
-    <button class="round" id="historyBtn" title="Conversa" aria-label="Ver conversa">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    </button>
-    <button class="round" id="voiceBtn2" title="Voz ligada/desligada" aria-label="Ligar ou desligar a voz">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-    </button>
-  </div>
-
-  <div class="stage">
-    <canvas id="orbCanvas" aria-label="YAWE"></canvas>
-    <div class="state-label" id="stateLabel">Fale comigo</div>
-    <div class="captions" id="captions"></div>
-  </div>
-
-  <form class="composer" id="beingComposer">
-    <button type="button" class="mic" data-mic aria-label="Falar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
-    </button>
-    <textarea rows="1" placeholder="Escrever…" enterkeyhint="send"></textarea>
-    <button type="submit" class="send" aria-label="Enviar">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
-    </button>
-  </form>
-</section>
-
-<!-- ============ Histórico ============ -->
-<div class="sheet hidden" id="sheet">
-  <div class="sheet-body">
-    <div class="sheet-head">
-      <h3>Conversa</h3>
-      <button class="round" id="closeSheet" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <!-- Histórico -->
+  <div class="tab hidden" id="tab-history">
+    <div class="topbar"><h1>Histórico</h1>
+      <button class="icon-btn" id="newFromHistory" aria-label="Nova conversa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <div class="hist" id="hist"></div>
   </div>
-</div>
+
+  <!-- Ajustes -->
+  <div class="tab hidden" id="tab-settings">
+    <div class="topbar"><h1>Ajustes</h1></div>
+    <div class="card" style="padding:0">
+      <button class="row" id="voiceRow">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span>
+        <span class="grow">Voz<small id="voiceSub">Respostas faladas</small></span>
+        <span class="switch" id="voiceSwitch"></span>
+      </button>
+      <button class="row" id="newRow">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span class="grow">Nova conversa<small>Começar do zero</small></span>
+      </button>
+      <button class="row hidden" id="serverRow">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+        <span class="grow">Servidor<small id="serverSub">Trocar endereço</small></span>
+      </button>
+      <button class="row danger" id="logoutRow">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
+        <span class="grow">Sair</span>
+      </button>
+    </div>
+    <div class="label" style="text-align:center;margin-top:18px" id="modelInfo"></div>
+  </div>
+
+  <nav class="bottom">
+    <button data-tab="home" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg>Início</button>
+    <button data-open="talk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Conversa</button>
+    <button data-open="listen" aria-label="Falar com o YAWE"><span class="talk-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></span></button>
+    <button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Histórico</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Ajustes</button>
+  </nav>
+</section>
+
+<!-- ================= Conversa (o personagem) ================= -->
+<section id="talk" class="screen hidden">
+  <div class="topbar">
+    <button class="icon-btn" id="closeTalk" aria-label="Voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
+    <h1 class="app-name">YAWE</h1>
+    <button class="icon-btn" id="talkVoice" aria-label="Voz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="talkCanvas" aria-label="YAWE"></canvas>
+    <div class="state-label" id="stateLabel"></div>
+  </div>
+  <div class="captions" id="captions"></div>
+  <form class="composer" id="composer">
+    <div class="box">
+      <textarea rows="1" id="input" placeholder="O que você quer saber?" enterkeyhint="send"></textarea>
+      <button type="button" class="mic-btn" id="micBtn" aria-label="Falar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg></button>
+    </div>
+    <button type="submit" class="send-btn" id="sendBtn" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+  </form>
+</section>
 
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const screens = ["login", "home", "being"];
-  const history = [];            // [{role, text}]
-  let busy = false;
-  let voiceAvailable = false;
-  let voiceOn = true;
+  const history = [];
+  let busy = false, voiceAvailable = false, voiceOn = true;
   try { voiceOn = localStorage.getItem("yawe-voice") !== "off"; } catch {}
-
-  // ================= O SER: esfera de energia =================
-  const canvas = $("orbCanvas");
-  const ctx = canvas.getContext("2d");
-  const orb = { state: "idle", level: 0, energy: 0.2, t: 0, running: false };
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const RINGS = 18;
-  const ringSeeds = Array.from({ length: RINGS }, (_, i) => ({
-    tiltX: Math.random() * Math.PI, tiltY: Math.random() * Math.PI * 2,
-    speed: 0.25 + Math.random() * 0.5, phase: Math.random() * 10, hue: 258 + Math.random() * 40,
-  }));
+  const EMPTY_LAST = "Ainda não conversamos. Toque no botão roxo para falar comigo.";
 
-  function resizeCanvas() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const r = canvas.getBoundingClientRect();
-    canvas.width = Math.max(1, r.width * dpr);
-    canvas.height = Math.max(1, r.height * dpr);
-  }
-  addEventListener("resize", resizeCanvas);
-
-  // Nível do som: análise real do áudio da voz (Web Audio), com alternativa simulada.
-  let audioCtx = null, analyser = null, freq = null;
-  function audioLevel() {
-    if (analyser && !player.paused) {
-      analyser.getByteFrequencyData(freq);
-      let sum = 0;
-      const n = Math.min(64, freq.length);   // faixa da voz humana
-      for (let i = 2; i < n; i++) sum += freq[i];
-      return Math.min(1, (sum / (n - 2)) / 140);
-    }
-    if (!player.paused) return 0.35 + 0.35 * Math.abs(Math.sin(orb.t * 9) * Math.sin(orb.t * 3.7));
-    return 0;
-  }
-
-  function drawOrb() {
-    const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h / 2;
-    const R = Math.min(w, h) * 0.3;
-    const target = { idle: 0.15, thinking: 0.45, listening: 0.6, speaking: 0.5 }[orb.state] ?? 0.15;
-    orb.energy += (target - orb.energy) * 0.04;
-    const lvl = orb.state === "speaking" ? audioLevel() : 0;
-    orb.level += (lvl - orb.level) * (lvl > orb.level ? 0.5 : 0.12);
-    const speed = { idle: 0.6, thinking: 2.2, listening: 1.4, speaking: 1.1 }[orb.state] ?? 0.6;
-    orb.t += (reduceMotion ? 0.004 : 0.016) * speed;
-    const t = orb.t, L = orb.level, E = orb.energy;
-
-    ctx.globalCompositeOperation = "source-over";
-    ctx.clearRect(0, 0, w, h);
-
-    // Halo e "nebulosa" interna
-    const breath = 1 + 0.03 * Math.sin(t * 1.3) + L * 0.12;
-    let g = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2.1 * breath);
-    g.addColorStop(0, `rgba(150, 90, 255, ${0.22 + E * 0.15 + L * 0.3})`);
-    g.addColorStop(0.45, `rgba(110, 60, 220, ${0.08 + L * 0.12})`);
-    g.addColorStop(1, "rgba(20, 10, 40, 0)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-
-    ctx.globalCompositeOperation = "lighter";
-    for (let k = 0; k < 3; k++) {
-      const ox = Math.cos(t * 0.7 + k * 2.1) * R * 0.35, oy = Math.sin(t * 0.9 + k * 1.7) * R * 0.3;
-      g = ctx.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, R * 0.75);
-      g.addColorStop(0, `hsla(${250 + k * 18}, 90%, 55%, ${0.12 + L * 0.18})`);
-      g.addColorStop(1, "hsla(260, 90%, 40%, 0)");
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    }
-
-    // Linhas de luz: anéis 3D que giram e ondulam com a voz
-    const STEPS = 96;
-    for (let i = 0; i < RINGS; i++) {
-      const s = ringSeeds[i];
-      const ax = s.tiltX + Math.sin(t * 0.3 + s.phase) * 0.35 * s.speed;
-      const ay = s.tiltY + t * (0.35 + s.speed * 0.25);
-      const cxr = Math.cos(ax), sxr = Math.sin(ax), cyr = Math.cos(ay), syr = Math.sin(ay);
-      ctx.beginPath();
-      let depthSum = 0;
-      for (let j = 0; j <= STEPS; j++) {
-        const a = (j / STEPS) * Math.PI * 2;
-        const wob = 1
-          + 0.035 * Math.sin(3 * a + t * 1.7 + s.phase)
-          + E * 0.04 * Math.sin(6 * a - t * 4 + i)
-          + L * 0.2 * Math.sin(5 * a - t * 11 + s.phase)
-          + L * 0.09 * Math.sin(11 * a + t * 17 + i * 1.3);
-        let x = Math.cos(a) * wob, y = Math.sin(a) * wob, z = 0;
-        // gira no eixo X e depois no Y
-        let y2 = y * cxr - z * sxr, z2 = y * sxr + z * cxr;
-        let x3 = x * cyr + z2 * syr, z3 = -x * syr + z2 * cyr;
-        const px = cx + x3 * R * breath, py = cy + y2 * R * breath;
-        depthSum += z3;
-        j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      const front = 0.5 + 0.5 * Math.tanh(depthSum / STEPS * 3);
-      const alpha = (0.1 + front * 0.35) * (0.75 + E * 0.5 + L * 0.8);
-      const dpr = canvas.width / canvas.getBoundingClientRect().width || 1;
-      ctx.strokeStyle = `hsla(${s.hue}, 95%, 72%, ${Math.min(0.9, alpha * 0.35)})`;
-      ctx.lineWidth = (3.2 + L * 4) * dpr;
-      ctx.stroke();
-      ctx.strokeStyle = `hsla(${s.hue + 10}, 100%, 88%, ${Math.min(1, alpha)})`;
-      ctx.lineWidth = (0.9 + L * 0.8) * dpr;
-      ctx.stroke();
-    }
-
-    // Contorno da esfera
-    for (let k = 0; k < 2; k++) {
-      ctx.beginPath();
-      for (let j = 0; j <= 120; j++) {
-        const a = (j / 120) * Math.PI * 2;
-        const rr = R * breath * (1.0 + 0.012 * Math.sin(4 * a + t * 2 + k)
-          + L * 0.07 * Math.sin(7 * a - t * 13 + k * 2) + L * 0.04 * Math.sin(13 * a + t * 19));
-        const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr;
-        j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      const dprr = canvas.width / canvas.getBoundingClientRect().width || 1;
-      ctx.strokeStyle = k ? `rgba(240, 225, 255, ${0.35 + L * 0.5})` : `rgba(170, 110, 255, ${0.18 + L * 0.3})`;
-      ctx.lineWidth = (k ? 1.1 + L : 6 + L * 8) * dprr;
-      ctx.stroke();
-    }
-
-    // Núcleo brilhante
-    g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * (0.55 + L * 0.25));
-    g.addColorStop(0, `rgba(235, 220, 255, ${0.05 + L * 0.35})`);
-    g.addColorStop(1, "rgba(160, 110, 255, 0)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  }
-
-  function loop() {
-    if (!orb.running) return;
-    // A área da esfera muda quando as legendas crescem: reajusta para não esticar o desenho.
-    const r = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    if (Math.abs(canvas.width - r.width * dpr) > 1 || Math.abs(canvas.height - r.height * dpr) > 1) resizeCanvas();
-    drawOrb();
-    requestAnimationFrame(loop);
-  }
-  function startOrb() {
-    if (orb.running) return;
-    orb.running = true;
-    resizeCanvas();
-    requestAnimationFrame(loop);
-  }
-  function stopOrb() { orb.running = false; }
-
-  const LABELS = { idle: "Fale comigo", thinking: "Pensando…", listening: "Ouvindo…", speaking: "" };
-  function setState(state) {
-    orb.state = state;
-    $("stateLabel").textContent = LABELS[state] ?? "";
-  }
-
-  // ================= Áudio =================
+  // ===================== Áudio + análise da voz =====================
   const player = new Audio();
   player.setAttribute("playsinline", "");
-  player.addEventListener("playing", () => { if (player.src.startsWith("blob:")) setState("speaking"); });
-  player.addEventListener("ended", () => { if (orb.state === "speaking") setState("idle"); });
-  player.addEventListener("pause", () => { if (orb.state === "speaking") setState("idle"); });
-
-  // WAV silencioso gerado aqui, só para liberar o som no celular no primeiro toque.
+  let audioCtx = null, analyser = null, freq = null;
   const SILENT = (() => {
-    const samples = 800, bytes = new Uint8Array(44 + samples * 2), v = new DataView(bytes.buffer);
-    const w = (o, str) => [...str].forEach((c, k) => v.setUint8(o + k, c.charCodeAt(0)));
-    w(0, "RIFF"); v.setUint32(4, 36 + samples * 2, true); w(8, "WAVEfmt ");
-    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-    v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-    w(36, "data"); v.setUint32(40, samples * 2, true);
-    return "data:audio/wav;base64," + btoa(String.fromCharCode(...bytes));
+    const n = 800, b = new Uint8Array(44 + n * 2), v = new DataView(b.buffer);
+    const w = (o, s) => [...s].forEach((c, k) => v.setUint8(o + k, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 16000, true);
+    v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return "data:audio/wav;base64," + btoa(String.fromCharCode(...b));
   })();
-  let audioUnlocked = false;
+  let unlocked = false;
   function unlockAudio() {
-    if (!audioUnlocked) {
-      audioUnlocked = true;
-      player.src = SILENT;
-      player.play().catch(() => {});
+    if (!unlocked) {
+      unlocked = true;
+      player.src = SILENT; player.play().catch(() => {});
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(player);
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.6;
+        const src = audioCtx.createMediaElementSource(player);
+        analyser = audioCtx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.6;
         freq = new Uint8Array(analyser.frequencyBinCount);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
+        src.connect(analyser); analyser.connect(audioCtx.destination);
       } catch { analyser = null; }
     }
     if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
   }
+  function voiceLevel(t) {
+    if (player.paused || !player.src.startsWith("blob:")) return 0;
+    if (analyser) {
+      analyser.getByteFrequencyData(freq);
+      let s = 0; const n = Math.min(64, freq.length);
+      for (let i = 2; i < n; i++) s += freq[i];
+      return Math.min(1, s / (n - 2) / 140);
+    }
+    return 0.35 + 0.35 * Math.abs(Math.sin(t * 9) * Math.sin(t * 3.7));
+  }
 
+  // ===================== O personagem (esfera com olhos) =====================
+  const mood = { state: "idle", level: 0, energy: 0, t: 0, blink: 0, nextBlink: 2, look: 0, lookTarget: 0, bounce: 0 };
+  function setState(s) {
+    mood.state = s;
+    $("stateLabel").textContent = { idle: "", thinking: "pensando", listening: "ouvindo", speaking: "" }[s] ?? "";
+  }
+
+  function drawBeing(canvas, scale) {
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const r = canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    if (Math.abs(canvas.width - r.width * dpr) > 1 || Math.abs(canvas.height - r.height * dpr) > 1) {
+      canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+    }
+    const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2;
+    const L = mood.level, E = mood.energy, t = mood.t;
+    const R = Math.min(w, h) * scale * (1 + 0.025 * Math.sin(t * 1.4) + L * 0.06 + mood.bounce * 0.08);
+    ctx.clearRect(0, 0, w, h);
+
+    // Halo suave
+    let g = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 2.2);
+    g.addColorStop(0, `rgba(120, 80, 255, ${0.10 + E * 0.08 + L * 0.18})`);
+    g.addColorStop(1, "rgba(10,10,12,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+
+    // Anel iridescente: camadas coloridas deslocadas que giram e ondulam com a voz
+    ctx.globalCompositeOperation = "lighter";
+    const colors = [[255, 44, 223], [0, 20, 255], [0, 225, 253], [252, 0, 122], [255, 140, 40], [140, 80, 255]];
+    for (let k = 0; k < colors.length; k++) {
+      const ang = t * (0.5 + k * 0.12) + k * 1.05;
+      const off = R * (0.10 + 0.05 * Math.sin(t * 0.8 + k) + L * 0.08);
+      const ox = Math.cos(ang) * off, oy = Math.sin(ang) * off;
+      const [cr, cg, cb] = colors[k];
+      ctx.beginPath();
+      for (let j = 0; j <= 90; j++) {
+        const a = (j / 90) * Math.PI * 2;
+        const rr = R * (1.02 + 0.02 * Math.sin(3 * a + t * 2 + k)
+          + E * 0.025 * Math.sin(5 * a - t * 5 + k)
+          + L * 0.10 * Math.sin(6 * a - t * 12 + k * 1.3) + L * 0.05 * Math.sin(11 * a + t * 18));
+        const px = cx + ox + Math.cos(a) * rr, py = cy + oy + Math.sin(a) * rr;
+        j ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(${cr},${cg},${cb},${0.08 + L * 0.12})`;
+      ctx.lineWidth = R * (0.42 + L * 0.12); ctx.stroke();
+      ctx.strokeStyle = `rgba(${cr},${cg},${cb},${0.16 + L * 0.2})`;
+      ctx.lineWidth = R * (0.18 + L * 0.06); ctx.stroke();
+      ctx.strokeStyle = `rgba(${cr},${cg},${cb},${0.22 + L * 0.3})`;
+      ctx.lineWidth = R * 0.05; ctx.stroke();
+    }
+    ctx.globalCompositeOperation = "source-over";
+
+    // Corpo escuro verde-azulado
+    g = ctx.createRadialGradient(cx - R * 0.15, cy - R * 0.2, R * 0.1, cx, cy, R * 0.98);
+    g.addColorStop(0, "#1e5a4e"); g.addColorStop(0.55, "#0f3330"); g.addColorStop(1, "#081816");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.9, 0, Math.PI * 2); ctx.fill();
+    g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.45, 0, cx - R * 0.35, cy - R * 0.45, R * 0.7);
+    g.addColorStop(0, "rgba(255,255,255,.10)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.9, 0, Math.PI * 2); ctx.fill();
+
+    // Olhos
+    const blinkK = mood.blink > 0 ? Math.max(0.08, Math.abs(Math.cos(mood.blink * Math.PI))) : 1;
+    const listenK = mood.state === "listening" ? 1.2 : 1;
+    const eyeW = R * 0.11, eyeH = R * 0.28 * blinkK * listenK * (1 - L * 0.25);
+    const lookX = mood.look * R * 0.14, lookY = mood.state === "thinking" ? -R * 0.08 : 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(255,255,255,.85)"; ctx.shadowBlur = R * 0.15;
+    for (const side of [-1, 1]) {
+      const ex = cx + side * R * 0.24 + lookX, ey = cy - R * 0.04 + lookY;
+      roundRect(ctx, ex - eyeW / 2, ey - eyeH / 2, eyeW, eyeH, eyeW / 2);
+    }
+    ctx.shadowBlur = 0;
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    r = Math.min(r, h / 2, w / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
+  }
+
+  // Temas orbitando o personagem
+  const TOPICS = [
+    ["Ideias", "Me dê três ideias criativas para hoje."],
+    ["Saúde", "Me dê uma dica simples de saúde para hoje."],
+    ["Estudos", "Me ajude a aprender algo novo em 2 minutos."],
+    ["Trabalho", "Me ajude a ser mais produtivo no trabalho hoje."],
+    ["Planos", "Me ajude a planejar minha semana."],
+    ["Curiosidade", "Me conte uma curiosidade surpreendente."],
+  ];
+  const stage = $("stage");
+  const pills = TOPICS.map(([label, prompt], i) => {
+    const b = document.createElement("button");
+    b.className = "orbit-pill"; b.type = "button"; b.textContent = label;
+    b.addEventListener("click", () => send(prompt));
+    stage.appendChild(b);
+    return { el: b, base: (i / TOPICS.length) * Math.PI * 2 };
+  });
+  function placePills() {
+    const r = stage.getBoundingClientRect();
+    const rx = Math.min(r.width * 0.36, 210), ry = Math.min(r.height * 0.38, 230);
+    for (const p of pills) {
+      const a = p.base + mood.t * 0.12;
+      const x = r.width / 2 + Math.cos(a) * rx - p.el.offsetWidth / 2;
+      const y = r.height / 2 + Math.sin(a) * ry - p.el.offsetHeight / 2;
+      p.el.style.transform = `translate(${x}px, ${y}px)`;
+    }
+    $("stateLabel").style.top = (r.height / 2 + Math.min(r.width, r.height) * 0.23 + 18) + "px";
+  }
+
+  // Loop de animação
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const speed = { idle: 0.7, thinking: 2.0, listening: 1.3, speaking: 1.1 }[mood.state] ?? 0.7;
+    mood.t += dt * speed * (reduceMotion ? 0.3 : 1);
+    const targetE = { idle: 0.1, thinking: 0.6, listening: 0.8, speaking: 0.4 }[mood.state] ?? 0.1;
+    mood.energy += (targetE - mood.energy) * Math.min(1, dt * 3);
+    const lv = mood.state === "speaking" ? voiceLevel(mood.t) : 0;
+    mood.level += (lv - mood.level) * Math.min(1, dt * (lv > mood.level ? 22 : 7));
+    mood.bounce *= Math.pow(0.02, dt);
+    mood.nextBlink -= dt;
+    if (mood.blink > 0) { mood.blink += dt * 6; if (mood.blink >= 1) mood.blink = 0; }
+    else if (mood.nextBlink <= 0) { mood.blink = 0.001; mood.nextBlink = 2 + Math.random() * 4; }
+    if (mood.state === "thinking") mood.lookTarget = Math.sin(mood.t * 2.2) > 0 ? 0.9 : -0.9;
+    else if (mood.state !== "idle") mood.lookTarget = 0;
+    else if (Math.random() < dt * 0.25) mood.lookTarget = (Math.random() - 0.5) * 0.8;
+    mood.look += (mood.lookTarget - mood.look) * Math.min(1, dt * 6);
+
+    if (!$("talk").classList.contains("hidden")) { drawBeing($("talkCanvas"), 0.2); placePills(); }
+    if (!$("app").classList.contains("hidden") && !$("tab-home").classList.contains("hidden")) drawBeing($("homeCanvas"), 0.3);
+    if (!$("login").classList.contains("hidden")) drawBeing($("loginCanvas"), 0.27);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ===================== Navegação =====================
+  function showScreen(name) {
+    for (const s of ["login", "app", "talk"]) $(s).classList.toggle("hidden", s !== name);
+  }
+  function showTab(name) {
+    for (const t of ["home", "history", "settings"]) $("tab-" + t).classList.toggle("hidden", t !== name);
+    document.querySelectorAll("nav.bottom [data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+    if (name === "history") renderHistory();
+    if (name === "home") refreshHome();
+  }
+  document.querySelectorAll("nav.bottom [data-tab]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  document.querySelector('[data-open="talk"]').addEventListener("click", () => { unlockAudio(); showScreen("talk"); });
+  document.querySelector('[data-open="listen"]').addEventListener("click", () => { unlockAudio(); showScreen("talk"); startListening(); });
+  $("closeTalk").addEventListener("click", () => { player.pause(); showScreen("app"); showTab("home"); });
+  $("lastCard").addEventListener("click", () => { unlockAudio(); showScreen("talk"); });
+  $("talkCanvas").addEventListener("click", () => {
+    unlockAudio(); mood.bounce = 1;
+    const lastAi = [...history].reverse().find((m) => m.role === "ai");
+    if (lastAi && player.paused && !busy) speak(lastAi.text);
+  });
+
+  function toast(text) {
+    const el = document.createElement("div"); el.className = "toast"; el.textContent = text;
+    document.body.appendChild(el); setTimeout(() => el.remove(), 3000);
+  }
+
+  // ===================== Widgets do início =====================
+  const WEEK = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  function tickClock() {
+    const d = new Date();
+    $("clockTime").textContent = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    $("clockWeek").textContent = WEEK[d.getDay()];
+    $("clockDate").textContent = `${d.getDate()} de ${MONTHS[d.getMonth()].toLowerCase()}`;
+    const h = d.getHours();
+    $("greetSmall").textContent = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+  }
+  function renderCalendar() {
+    const d = new Date(), y = d.getFullYear(), m = d.getMonth();
+    $("calMonth").textContent = MONTHS[m];
+    const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate();
+    let html = ["D", "S", "T", "Q", "Q", "S", "S"].map((x) => `<span class="dow">${x}</span>`).join("");
+    for (let i = 0; i < first; i++) html += "<span></span>";
+    for (let day = 1; day <= days; day++) {
+      const cls = day === d.getDate() ? "today" : day < d.getDate() ? "past" : "";
+      html += `<span class="${cls}">${day}</span>`;
+    }
+    $("cal").innerHTML = html;
+  }
+  async function setupBattery() {
+    // Sem a API de bateria (iPhone, alguns navegadores), o card de conversa ocupa a linha toda.
+    const noBattery = () => { $("batteryCard").classList.add("hidden"); $("convCard").classList.add("wide"); };
+    if (!navigator.getBattery) return noBattery();
+    try {
+      const b = await navigator.getBattery();
+      const upd = () => {
+        const pct = Math.round(b.level * 100);
+        $("batteryNum").textContent = pct;
+        $("batteryBar").style.width = pct + "%";
+        $("batteryState").textContent = b.charging ? "carregando" : "na bateria";
+      };
+      upd(); b.addEventListener("levelchange", upd); b.addEventListener("chargingchange", upd);
+    } catch { noBattery(); }
+  }
+  function refreshHome() {
+    tickClock();
+    const n = history.length;
+    $("msgCount").textContent = n;
+    [...$("msgSegs").children].forEach((s, i) => s.classList.toggle("on", n > i * 4));
+    const lastAi = [...history].reverse().find((m) => m.role === "ai");
+    $("lastText").textContent = lastAi ? lastAi.text : EMPTY_LAST;
+    $("lastText").classList.toggle("empty", !lastAi);
+  }
+  setInterval(tickClock, 15000);
+
+  // ===================== Histórico =====================
+  function renderHistory() {
+    const box = $("hist"); box.innerHTML = "";
+    if (!history.length) { box.innerHTML = '<div class="empty-state">Nenhuma mensagem ainda.</div>'; return; }
+    for (const m of history) {
+      const el = document.createElement("div"); el.className = "m " + m.role; el.textContent = m.text; box.appendChild(el);
+    }
+    requestAnimationFrame(() => { $("tab-history").scrollTop = $("tab-history").scrollHeight; });
+  }
+
+  // ===================== Voz (ElevenLabs) =====================
+  player.addEventListener("playing", () => { if (player.src.startsWith("blob:")) setState("speaking"); });
+  player.addEventListener("ended", () => { if (mood.state === "speaking") setState("idle"); });
+  player.addEventListener("pause", () => { if (mood.state === "speaking") setState("idle"); });
   async function speak(text) {
     if (!voiceAvailable || !voiceOn || !text) { setState("idle"); return; }
     try {
-      const resp = await fetch("/api/tts", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
-      });
+      const resp = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
       if (resp.status === 204) { setState("idle"); return; }
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        caption("note", "Voz: " + (data.error || "não foi possível gerar o áudio."));
-        setState("idle");
-        return;
+        caption("note", "voz: " + (data.error || "não foi possível gerar o áudio"));
+        setState("idle"); return;
       }
       const blob = await resp.blob();
       if (player.src.startsWith("blob:")) URL.revokeObjectURL(player.src);
       player.src = URL.createObjectURL(blob);
       if (audioCtx && audioCtx.state === "suspended") await audioCtx.resume().catch(() => {});
       await player.play();
-    } catch {
-      setState("idle");
-      toast("Toque na esfera para ouvir a resposta.");
-    }
+    } catch { setState("idle"); toast("Toque no YAWE para ouvir a resposta."); }
   }
-
-  // ================= Navegação =================
-  function show(name) {
-    for (const s of screens) $(s).classList.toggle("hidden", s !== name);
-    document.querySelector('meta[name="theme-color"]').content = name === "being" ? "#07040d" : "#f5f2fb";
-    if (name === "being") startOrb(); else stopOrb();
+  function renderVoice() {
+    $("voiceSwitch").classList.toggle("on", voiceAvailable && voiceOn);
+    $("voiceSub").textContent = voiceAvailable ? (voiceOn ? "Respostas faladas" : "Desligada") : "Indisponível (sem chave da ElevenLabs)";
+    $("talkVoice").style.opacity = voiceAvailable && voiceOn ? 1 : 0.4;
   }
-
-  function toast(text) {
-    const el = document.createElement("div");
-    el.className = "toast"; el.textContent = text;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3200);
+  function toggleVoice() {
+    unlockAudio();
+    if (!voiceAvailable) { toast("Voz indisponível: falta a chave da ElevenLabs."); return; }
+    voiceOn = !voiceOn; if (!voiceOn) player.pause();
+    try { localStorage.setItem("yawe-voice", voiceOn ? "on" : "off"); } catch {}
+    renderVoice(); toast(voiceOn ? "Voz ligada" : "Voz desligada");
   }
+  $("voiceRow").addEventListener("click", toggleVoice);
+  $("talkVoice").addEventListener("click", toggleVoice);
 
-  // ================= Legendas e histórico =================
-  const captions = $("captions");
+  // ===================== Conversa =====================
+  const captions = $("captions"), input = $("input");
   function caption(kind, text) {
-    const el = document.createElement("div");
-    el.className = kind; el.textContent = text;
-    captions.appendChild(el);
-    captions.scrollTop = captions.scrollHeight;
-    return el;
+    const el = document.createElement("div"); el.className = kind; el.textContent = text;
+    captions.appendChild(el); captions.scrollTop = captions.scrollHeight; return el;
   }
-  function renderHistory() {
-    const box = $("hist");
-    box.innerHTML = "";
-    if (!history.length) { box.innerHTML = '<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
-    for (const m of history) {
-      const el = document.createElement("div");
-      el.className = "m " + m.role; el.textContent = m.text;
-      box.appendChild(el);
-    }
+  function grow() {
+    input.style.height = "auto";
+    if (input.value && input.scrollHeight) input.style.height = Math.min(input.scrollHeight, 110) + "px";
   }
+  input.addEventListener("input", grow);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); } });
+  $("composer").addEventListener("submit", (e) => { e.preventDefault(); send(input.value); });
+  document.querySelectorAll("[data-prompt]").forEach((b) => b.addEventListener("click", () => send(b.dataset.prompt)));
 
-  // ================= Conversa =================
   async function send(text) {
     text = (text || "").trim();
     if (!text || busy) return;
-    unlockAudio();
-    player.pause();
-    document.querySelectorAll(".composer textarea").forEach((t) => { t.value = ""; grow(t); t.blur(); });
-    show("being");
-    busy = true;
-    document.querySelectorAll(".send").forEach((b) => (b.disabled = true));
+    unlockAudio(); player.pause();
+    input.value = ""; grow(); input.blur();
+    showScreen("talk");
+    stage.classList.add("chatting");
+    busy = true; $("sendBtn").disabled = true;
     setState("thinking");
-
     captions.innerHTML = "";
     caption("you", text);
     history.push({ role: "user", text });
     const aiEl = caption("ai", "");
-    let full = "";
-    let ok = false;
+    let full = "", ok = false;
     try {
-      const resp = await fetch("/api/chat", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }),
-      });
-      if (resp.status === 401) { history.pop(); show("login"); return; }
-      if (!resp.ok || !resp.body) {
-        const data = await resp.json().catch(() => ({}));
-        throw new Error(data.error || "Falha ao falar com o servidor.");
-      }
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+      if (resp.status === 401) { history.pop(); showScreen("login"); return; }
+      if (!resp.ok || !resp.body) { const d = await resp.json().catch(() => ({})); throw new Error(d.error || "Falha ao falar com o servidor."); }
+      const reader = resp.body.getReader(), decoder = new TextDecoder();
+      let buf = "";
       for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+        buf += decoder.decode(value, { stream: true });
         let nl;
-        while ((nl = buffer.indexOf("\n")) >= 0) {
-          const line = buffer.slice(0, nl).trim();
-          buffer = buffer.slice(nl + 1);
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
           if (!line) continue;
           const ev = JSON.parse(line);
-          if (ev.t) {
-            full += ev.t;
-            aiEl.textContent = full;
-            captions.scrollTop = captions.scrollHeight;
-          } else if (ev.notice) {
-            caption("note", ev.notice);
-          } else if (ev.error) {
-            aiEl.remove();
-            history.pop();
-            caption("error", ev.error);
-          } else if (ev.done) {
-            full = ev.text || full;
-            aiEl.textContent = full;
+          if (ev.t) { full += ev.t; aiEl.textContent = full; captions.scrollTop = captions.scrollHeight; }
+          else if (ev.notice) caption("note", ev.notice);
+          else if (ev.error) { aiEl.remove(); history.pop(); caption("error", ev.error); }
+          else if (ev.done) {
+            full = ev.text || full; aiEl.textContent = full;
             history.push({ role: "ai", text: full });
-            if (ev.truncated) caption("note", "Resposta cortada por ser muito longa.");
+            if (ev.truncated) caption("note", "resposta cortada por ser muito longa");
             ok = true;
           }
         }
@@ -609,173 +721,94 @@
     } catch (err) {
       aiEl.remove();
       if (history.at(-1)?.role === "user") history.pop();
-      caption("error", err.message || "Sem conexão com o servidor. O PC está ligado e no mesmo Wi-Fi?");
+      caption("error", err.message || "Sem conexão com o servidor.");
     } finally {
-      busy = false;
-      document.querySelectorAll(".send").forEach((b) => (b.disabled = false));
+      busy = false; $("sendBtn").disabled = false;
     }
     if (ok) speak(full); else setState("idle");
   }
 
-  // Campos de texto
-  function grow(t) {
-    t.style.height = "auto";
-    if (!t.value || !t.scrollHeight) return;          // vazio ou tela escondida: altura natural
-    t.style.height = Math.min(t.scrollHeight, 110) + "px";
+  async function newConversation() {
+    if (busy) return;
+    player.pause();
+    await fetch("/api/reset", { method: "POST" });
+    history.length = 0; captions.innerHTML = ""; stage.classList.remove("chatting");
+    renderHistory(); refreshHome(); toast("Nova conversa iniciada");
   }
-  for (const form of [$("homeComposer"), $("beingComposer")]) {
-    const ta = form.querySelector("textarea");
-    ta.addEventListener("input", () => grow(ta));
-    ta.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(ta.value); }
-    });
-    form.addEventListener("submit", (e) => { e.preventDefault(); send(ta.value); });
-  }
+  $("newRow").addEventListener("click", newConversation);
+  $("newFromHistory").addEventListener("click", newConversation);
 
-  // Atalhos do menu
-  document.querySelectorAll(".chip[data-prompt]").forEach((c) => c.addEventListener("click", () => send(c.dataset.prompt)));
-
-  // ================= Microfone =================
-  // O navegador só libera o microfone em HTTPS ou no próprio PC (localhost).
+  // ===================== Microfone =====================
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const androidApp = window.YAWEAndroid;          // existe só dentro do app Android
+  const androidApp = window.YAWEAndroid;   // existe só dentro do app Android
   const canListen = !!androidApp || (!!Recognition && window.isSecureContext);
   let recognizer = null;
-
-  // App Android: usa o reconhecimento de voz nativo; o texto volta por aqui.
   window.yaweOnSpeech = (text) => {
-    document.querySelectorAll("[data-mic]").forEach((b) => b.classList.remove("listening"));
+    $("micBtn").classList.remove("listening");
     if (text && text.trim()) send(text); else setState("idle");
   };
-
-  document.querySelectorAll("[data-mic]").forEach((btn) => btn.addEventListener("click", () => {
+  function startListening() {
     unlockAudio();
-    const ta = btn.closest("form").querySelector("textarea");
     if (androidApp) {
-      player.pause();
-      show("being");
-      document.querySelectorAll("[data-mic]").forEach((b) => b.classList.add("listening"));
-      setState("listening");
-      androidApp.listen();
-      return;
+      player.pause(); $("micBtn").classList.add("listening"); setState("listening");
+      androidApp.listen(); return;
     }
-    if (!canListen) {
-      ta.focus();
-      toast("Use o microfone do teclado do celular para ditar a mensagem.");
-      return;
-    }
+    if (!canListen) { input.focus(); toast("Use o microfone do teclado para ditar."); return; }
     if (recognizer) { recognizer.stop(); return; }
     player.pause();
-    show("being");
-    const beingTa = $("beingComposer").querySelector("textarea");
-    recognizer = new Recognition();
-    recognizer.lang = "pt-BR";
-    recognizer.interimResults = true;
+    recognizer = new Recognition(); recognizer.lang = "pt-BR"; recognizer.interimResults = true;
     let finalText = "";
     recognizer.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript;
+        const r = e.results[i]; if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript;
       }
-      beingTa.value = (finalText + interim).trim(); grow(beingTa);
+      input.value = (finalText + interim).trim(); grow();
     };
     recognizer.onerror = (e) => { if (e.error === "not-allowed") toast("Permita o uso do microfone."); };
     recognizer.onend = () => {
-      document.querySelectorAll("[data-mic]").forEach((b) => b.classList.remove("listening"));
-      recognizer = null;
+      $("micBtn").classList.remove("listening"); recognizer = null;
       if (finalText.trim()) send(finalText); else setState("idle");
     };
-    document.querySelectorAll("[data-mic]").forEach((b) => b.classList.add("listening"));
-    setState("listening");
+    $("micBtn").classList.add("listening"); setState("listening");
     recognizer.start();
-  }));
-
-  // ================= Botões =================
-  function renderVoice() {
-    for (const id of ["voiceBtn", "voiceBtn2"]) {
-      $(id).classList.toggle("hidden", !voiceAvailable);
-      $(id).classList.toggle("off", !voiceOn);
-    }
   }
-  for (const id of ["voiceBtn", "voiceBtn2"]) $(id).addEventListener("click", () => {
-    unlockAudio();
-    voiceOn = !voiceOn;
-    if (!voiceOn) player.pause();
-    try { localStorage.setItem("yawe-voice", voiceOn ? "on" : "off"); } catch {}
-    renderVoice();
-    toast(voiceOn ? "Voz ligada." : "Voz desligada.");
-  });
+  $("micBtn").addEventListener("click", startListening);
 
-  $("openBeing").addEventListener("click", () => { unlockAudio(); show("being"); });
-  $("closeBeing").addEventListener("click", () => { player.pause(); show("home"); });
-  canvas.addEventListener("click", () => {   // tocar na esfera repete a última resposta
-    unlockAudio();
-    const last = [...history].reverse().find((m) => m.role === "ai");
-    if (last && player.paused && !busy) speak(last.text);
-  });
-  const openSheet = () => { renderHistory(); $("sheet").classList.remove("hidden"); };
-  $("historyBtn").addEventListener("click", openSheet);
-  $("historyChip").addEventListener("click", openSheet);
-  $("closeSheet").addEventListener("click", () => $("sheet").classList.add("hidden"));
-  $("sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("sheet").classList.add("hidden"); });
-
-  $("newChip").addEventListener("click", async () => {
-    if (busy) return;
-    player.pause();
-    await fetch("/api/reset", { method: "POST" });
-    history.length = 0;
-    captions.innerHTML = "";
-    toast("Nova conversa iniciada.");
-  });
-
-  $("logoutBtn").addEventListener("click", async () => {
+  // ===================== Login / sessão =====================
+  if (androidApp) {
+    $("changeServer").classList.remove("hidden");
+    $("changeServer").addEventListener("click", () => androidApp.changeServer());
+    $("serverRow").classList.remove("hidden");
+    $("serverRow").addEventListener("click", () => androidApp.changeServer());
+    try { $("serverSub").textContent = androidApp.getServerUrl() || "Trocar endereço"; } catch {}
+  }
+  $("logoutRow").addEventListener("click", async () => {
     if (!confirm("Sair do app?")) return;
-    player.pause();
-    await fetch("/api/logout", { method: "POST" });
-    location.reload();
+    player.pause(); await fetch("/api/logout", { method: "POST" }); location.reload();
   });
-
   $("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    unlockAudio();
-    $("loginErr").textContent = "";
+    e.preventDefault(); unlockAudio(); $("loginErr").textContent = "";
     const resp = await fetch("/api/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: $("password").value }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("password").value }),
     }).catch(() => null);
     if (resp && resp.ok) { $("password").value = ""; start(); }
-    else {
-      const data = resp ? await resp.json().catch(() => ({})) : {};
-      $("loginErr").textContent = resp ? (data.error || "Senha incorreta.") : "Sem conexão com o servidor.";
-    }
+    else { const d = resp ? await resp.json().catch(() => ({})) : {}; $("loginErr").textContent = resp ? (d.error || "Senha incorreta.") : "Sem conexão com o servidor."; }
   });
-
-  if (window.YAWEAndroid) {
-    $("changeServer").classList.remove("hidden");
-    $("changeServer").addEventListener("click", () => window.YAWEAndroid.changeServer());
-  }
-
-  function greeting() {
-    const h = new Date().getHours();
-    return h < 12 ? "Bom dia, senhor" : h < 18 ? "Boa tarde, senhor" : "Boa noite, senhor";
-  }
 
   async function start() {
     try {
       const st = await (await fetch("/api/status")).json();
       document.title = st.name;
       document.querySelectorAll(".app-name").forEach((el) => (el.textContent = st.name));
-      $("monogram").textContent = (st.name || "Y").slice(0, 1).toUpperCase();
-      if (!st.logged_in) { show("login"); $("password").focus(); return; }
+      if (!st.logged_in) { showScreen("login"); return; }
       voiceAvailable = st.voice;
-      $("statusText").textContent = st.voice ? "online · voz" : "online";
-      $("greeting").textContent = greeting();
-      renderVoice();
-      setState("idle");
-      show("home");
+      $("statusText").textContent = st.voice ? "● online · voz" : "● online";
+      $("modelInfo").textContent = st.model ? "modelo · " + st.model : "";
+      renderVoice(); renderCalendar(); setupBattery();
+      setState("idle"); showScreen("app"); showTab("home");
     } catch {
-      document.body.innerHTML = '<p style="padding:24px">Não foi possível conectar ao servidor. Confira se o PC está ligado, com o app aberto, e no mesmo Wi-Fi.</p>';
+      document.body.innerHTML = '<p style="padding:24px;color:#ccc">Não foi possível conectar ao servidor.</p>';
     }
   }
   start();
