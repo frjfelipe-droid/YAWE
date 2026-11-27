@@ -5,6 +5,7 @@ Rode com:  py web.py   (ou dê dois cliques em "Abrir YAWE.bat")
 
 from __future__ import annotations
 
+import dataclasses
 import hmac
 import json
 import os
@@ -25,8 +26,15 @@ from yawe.config import ConfigError, Settings, load_settings
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 MAX_MESSAGE_CHARS = 8000
 
+# No app (conversa por voz) o assistente responde curto e direto, sem mudar o modelo de IA.
+DIRECT_STYLE = (
+    "\n\nEstilo de resposta: seja direto. Responda em no máximo 2 ou 3 frases curtas, "
+    "sem introduções nem listas longas, a menos que o usuário peça detalhes."
+)
+
 
 def create_app(settings: Settings) -> Flask:
+    settings = dataclasses.replace(settings, system_prompt=settings.system_prompt + DIRECT_STYLE)
     app = Flask(__name__, static_folder=None)
     # Chave que assina o cookie de login. Sem APP_SECRET_KEY, muda a cada reinício (basta entrar de novo).
     app.secret_key = os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)

@@ -1,14 +1,20 @@
 package com.yawe.app;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -32,11 +38,18 @@ public class MainActivity extends Activity {
     private static final String PREFS = "yawe";
     private static final String KEY_URL = "server_url";
     private static final int REQ_SPEECH = 42;
+    private static final int REQ_MIC = 43;
     private static final String SETUP_PAGE = "file:///android_asset/setup.html";
     private static final String OFFLINE_PAGE = "file:///android_asset/offline.html";
 
     private WebView web;
     private SharedPreferences prefs;
+
+    // Escuta contínua (palavra de ativação) com o reconhecedor de voz do Android, sem janela.
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private SpeechRecognizer recognizer;
+    private boolean wantListening = false;
+    private boolean listening = false;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -137,6 +150,28 @@ public class MainActivity extends Activity {
             runOnUiThread(MainActivity.this::openStart);
         }
 
+        @JavascriptInterface
+        public boolean hasNativeWake() {
+            return true;
+        }
+
+        /** Começa a escutar sem parar; o texto vai para window.yaweOnPartial / window.yaweOnFinal. */
+        @JavascriptInterface
+        public void startWake() {
+            runOnUiThread(() -> {
+                wantListening = true;
+                ensureMicThenListen();
+            });
+        }
+
+        @JavascriptInterface
+        public void stopWake() {
+            runOnUiThread(() -> {
+                wantListening = false;
+                stopRecognizer();
+            });
+        }
+
         /** Abre o reconhecimento de voz do Android; o texto volta em window.yaweOnSpeech(texto). */
         @JavascriptInterface
         public void listen() {
@@ -154,6 +189,130 @@ public class MainActivity extends Activity {
                     deliverSpeech(null);
                 }
             });
+        }
+    }
+
+    private void js(String code) {
+        if (web != null) web.evaluateJavascript(code, null);
+    }
+
+    private void ensureMicThenListen() {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+            return;
+        }
+        startRecognizer();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQ_MIC) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (wantListening) startRecognizer();
+        } else {
+            wantListening = false;
+            js("window.yaweOnSpeechError && window.yaweOnSpeechError('permission')");
+        }
+    }
+
+    private void startRecognizer() {
+        if (!wantListening || listening) return;
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            wantListening = false;
+            js("window.yaweOnSpeechError && window.yaweOnSpeechError('unavailable')");
+            return;
+        }
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            recognizer.setRecognitionListener(new Listener());
+        }
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pt-BR");
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+        try {
+            recognizer.startListening(intent);
+            listening = true;
+        } catch (Exception e) {
+            restartLater(1000, true);
+        }
+    }
+
+    private void stopRecognizer() {
+        handler.removeCallbacksAndMessages(null);
+        listening = false;
+        if (recognizer != null) {
+            try {
+                recognizer.cancel();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void restartLater(long delayMs, boolean recreate) {
+        listening = false;
+        if (recreate && recognizer != null) {
+            recognizer.destroy();
+            recognizer = null;
+        }
+        handler.postDelayed(this::startRecognizer, delayMs);
+    }
+
+    private static String firstResult(Bundle b) {
+        if (b == null) return null;
+        ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        return (r == null || r.isEmpty()) ? null : r.get(0);
+    }
+
+    private class Listener implements RecognitionListener {
+        @Override public void onReadyForSpeech(Bundle params) { }
+        @Override public void onBeginningOfSpeech() { }
+        @Override public void onRmsChanged(float rmsdB) { }
+        @Override public void onBufferReceived(byte[] buffer) { }
+        @Override public void onEndOfSpeech() { }
+        @Override public void onEvent(int eventType, Bundle params) { }
+
+        @Override
+        public void onPartialResults(Bundle partialResults) {
+            String text = firstResult(partialResults);
+            if (text != null && !text.isEmpty()) {
+                js("window.yaweOnPartial && window.yaweOnPartial(" + JSONObject.quote(text) + ")");
+            }
+        }
+
+        @Override
+        public void onResults(Bundle results) {
+            String text = firstResult(results);
+            js("window.yaweOnFinal && window.yaweOnFinal(" + JSONObject.quote(text == null ? "" : text) + ")");
+            listening = false;
+            if (wantListening) restartLater(150, false);
+        }
+
+        @Override
+        public void onError(int error) {
+            listening = false;
+            if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
+                wantListening = false;
+                js("window.yaweOnSpeechError && window.yaweOnSpeechError('permission')");
+                return;
+            }
+            if (!wantListening) return;
+            boolean recreate = error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY
+                    || error == SpeechRecognizer.ERROR_CLIENT
+                    || error == SpeechRecognizer.ERROR_SERVER;
+            long delay = error == SpeechRecognizer.ERROR_NETWORK ? 2000 : 300;
+            restartLater(delay, recreate);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (wantListening && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            startRecognizer();
         }
     }
 
@@ -186,6 +345,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        stopRecognizer(); // não escuta com o app em segundo plano
         CookieManager.getInstance().flush(); // mantém o login salvo
     }
 
@@ -197,6 +357,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        stopRecognizer();
+        if (recognizer != null) recognizer.destroy();
         if (web != null) {
             web.setVisibility(View.GONE);
             web.destroy();
