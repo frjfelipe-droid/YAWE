@@ -55,7 +55,7 @@ public class YaweWidget extends AppWidgetProvider {
         return v;
     }
 
-    private static PendingIntent open(Context c, String action, int requestCode) {
+    static PendingIntent open(Context c, String action, int requestCode) {
         Intent i = new Intent(c, MainActivity.class);
         i.putExtra(MainActivity.EXTRA_ACTION, action);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);

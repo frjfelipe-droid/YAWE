@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">YAWE</string>
+    <string name="live_widget_description">O YAWE vivendo no seu celular: dorme, toma café, assiste TV. Toque para ele acordar.</string>
     <string name="widget_description">Seu assistente na tela inicial: humor, saudação e atalho para falar.</string>
 </resources>

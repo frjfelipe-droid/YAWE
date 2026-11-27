@@ -584,7 +584,7 @@
   }
 
   // ===================== O ser: esfera de luz com olhos =====================
-  const life = { state: "idle", level: 0, energy: 0, t: 0, blink: 0, nextBlink: 2, look: 0, lookY: 0, lx: 0, ly: 0, bounce: 0, happy: 0 };
+  const life = { state: "idle", level: 0, energy: 0, t: 0, blink: 0, nextBlink: 2, look: 0, lookY: 0, lx: 0, ly: 0, bounce: 0, happy: 0, sleep: 0 };
   function setState(s) {
     life.state = s;
     if (s === "idle") earsResume();
@@ -646,7 +646,10 @@
     ctx.shadowColor = "rgba(30,10,60,.35)"; ctx.shadowBlur = R * 0.12;
     for (const side of [-1, 1]) {
       const ex = cx + side * R * 0.22 + ox, ey = cy - R * 0.02 + oy;
-      if (life.happy > 0.5 || moodName === "feliz" && life.state === "idle" && Math.sin(t * 0.7) > 0.92) {
+      if (life.sleep > 0.45) {          // ainda acordando: olhos fechados
+        ctx.lineWidth = ew * 0.7; ctx.lineCap = "round"; ctx.beginPath();
+        ctx.arc(ex, ey - R * 0.02, R * 0.075, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+      } else if (life.happy > 0.5 || moodName === "feliz" && life.state === "idle" && Math.sin(t * 0.7) > 0.92) {
         ctx.lineWidth = ew * 0.85; ctx.lineCap = "round"; ctx.beginPath();
         ctx.arc(ex, ey + R * 0.05, R * 0.075, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
       } else if (moodName === "sonolento" && life.state === "idle") {
@@ -665,7 +668,7 @@
     life.energy += (({ idle: 0.1, thinking: 0.6, listening: 0.8, speaking: 0.4 }[life.state] ?? 0.1) - life.energy) * Math.min(1, dt * 3);
     const lv = life.state === "speaking" ? voiceLevel(life.t) : 0;
     life.level += (lv - life.level) * Math.min(1, dt * (lv > life.level ? 22 : 7));
-    life.bounce *= Math.pow(0.02, dt); life.happy = Math.max(0, life.happy - dt);
+    life.bounce *= Math.pow(0.02, dt); life.happy = Math.max(0, life.happy - dt); life.sleep = Math.max(0, life.sleep - dt * 0.9);
     // cores deslizam para o humor atual
     m.c.map(hex).forEach((tc, i) => { for (let k = 0; k < 3; k++) palette[i][k] += (tc[k] - palette[i][k]) * Math.min(1, dt * 1.5); });
     // piscar
@@ -708,7 +711,11 @@
 
   // ===================== Voz (ElevenLabs) =====================
   player.addEventListener("playing", () => { if (player.src.startsWith("blob:")) setState("speaking"); });
-  player.addEventListener("ended", () => { if (life.state === "speaking") setState("idle"); });
+  let listenAfterSpeak = false;
+  player.addEventListener("ended", () => {
+    if (life.state === "speaking") setState("idle");
+    if (listenAfterSpeak) { listenAfterSpeak = false; setTimeout(() => $("micBtn").click(), 250); }
+  });
   player.addEventListener("pause", () => { if (life.state === "speaking") setState("idle"); });
   async function speak(text) {
     if (!voiceAvailable || !voiceOn || !text) { setState("idle"); return; }
@@ -839,9 +846,23 @@
     if (!action || current === "login") return false;
     if (action === "listen") { stack.length = 0; if (current !== "face") show("face", { push: false }); setTimeout(() => $("micBtn").click(), 350); return true; }
     if (action === "course") { stack.length = 0; show("face", { push: false }); show("course"); return true; }
+    if (action === "wake") { stack.length = 0; if (current !== "face") show("face", { push: false }); wakeUp(); return true; }
     return false;
   }
   window.yaweAction = () => runAction(takeAction());
+  // Tocou no widget: ele estava fazendo outra coisa, se levanta e pergunta como pode ajudar
+  function wakeUp() {
+    player.pause();
+    life.sleep = 1; setState("idle");
+    captions.innerHTML = "";
+    setTimeout(() => {
+      life.bounce = 1; life.happy = 0.9;
+      const line = memory.nome ? `Oi, ${memory.nome}! Como posso ajudar?` : "Oi! Como posso ajudar?";
+      caption("ai", line);
+      if (voiceAvailable && voiceOn) { listenAfterSpeak = true; speak(line); }
+      else setTimeout(() => $("micBtn").click(), 400);
+    }, reduceMotion ? 100 : 900);
+  }
 
   // ===================== Escuta: palavra de ativação =====================
   const nativeWake = !!androidApp && typeof androidApp.startWake === "function";

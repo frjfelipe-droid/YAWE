@@ -207,6 +207,7 @@ public class MainActivity extends Activity {
                         .putInt("goal", o.optInt("goal", 30))
                         .apply();
                 YaweWidget.refresh(MainActivity.this);
+                YaweLiveWidget.refresh(MainActivity.this);
             } catch (Exception ignored) {
             }
         }
@@ -385,9 +386,19 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Com o app aberto o YAWE aparece acordado no widget; ao sair, volta às atividades dele. */
+    private void setAwake(boolean awake) {
+        getSharedPreferences(YaweWidget.PREFS, MODE_PRIVATE).edit()
+                .putBoolean("awake", awake)
+                .putLong("awakeAt", System.currentTimeMillis())
+                .apply();
+        YaweLiveWidget.refresh(this);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        setAwake(true);
         if (wantListening && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             startRecognizer();
         }
@@ -423,6 +434,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         stopRecognizer(); // não escuta com o app em segundo plano
+        setAwake(false);
         CookieManager.getInstance().flush(); // mantém o login salvo
     }
 
